@@ -92,8 +92,8 @@ export const CompleteRegistrationFormExample: Story = {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       setIsSubmitting(false);
-      setSubmitResult(`Registration successful for ${data.firstName} ${data.lastName}!`);
-      console.log('Registration data:', data);
+      setSubmitResult(`Registration successful! Welcome, ${data.firstName}!`);
+      // Registration data processed successfully
     };
 
     const countryOptions = [
@@ -323,7 +323,7 @@ export const ProductCreationFormExample: Story = {
 
       setIsSubmitting(false);
       setSubmitResult(`Product "${data.name}" created successfully!`);
-      console.log('Product data:', data);
+      // Product data processed successfully
     };
 
     const categoryOptions = [

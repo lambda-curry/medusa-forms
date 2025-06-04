@@ -1,15 +1,9 @@
+import type { CalendarDate, CalendarDateTime, Granularity } from '@internationalized/date';
+import type { BaseDatePickerProps } from '@medusajs/ui';
 import type { ReactNode, RefAttributes } from 'react';
+import type * as React from 'react';
 import type { Props, SelectInstance } from 'react-select';
 import type { CreatableProps } from 'react-select/creatable';
-import type { 
-  CalendarDateTime, 
-  CalendarDate, 
-  Granularity 
-} from '@internationalized/date';
-import type { 
-  BaseDatePickerProps
-} from '@medusajs/ui';
-import type * as React from 'react';
 
 export interface BasicFieldProps {
   label?: ReactNode;
@@ -53,7 +47,6 @@ type Group = {
   label: string;
   options: Option[];
 };
-
 
 type DatePickerValueProps = {
   defaultValue?: Date | null;

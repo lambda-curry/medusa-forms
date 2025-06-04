@@ -30,7 +30,6 @@ const server = http.createServer((req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      console.error('Error reading file:', filePath, err);
       res.writeHead(404);
       res.end('Not found');
       return;
@@ -42,5 +41,5 @@ const server = http.createServer((req, res) => {
 
 const PORT = 45678;
 server.listen(PORT, () => {
-  console.log(`Server running on http://127.0.0.1:${PORT}`);
+  // Server started successfully
 });
