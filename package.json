@@ -2,10 +2,7 @@
   "name": "medusa-forms",
   "version": "0.1.1",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "start": "yarn dev",
     "dev": "turbo run dev",
@@ -15,6 +12,7 @@
     "clean": "find . -name '.turbo' -type d -prune -exec rm -rf {} + && find . -name 'node_modules' -type d -prune -exec rm -rf {} + && find . -name 'yarn.lock' -type f -delete",
     "format-and-lint": "biome check .",
     "format-and-lint:fix": "biome check . --write",
+    "biome:fix": "biome check . --write --unsafe",
     "prerelease": "turbo run build",
     "release": "changeset publish",
     "build-storybook": "turbo run build-storybook"

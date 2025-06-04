@@ -457,7 +457,6 @@ export const InteractiveDemo: Story = {
 
     const handleSelectChange = (value: unknown) => {
       setSelectedValue(value as string);
-      console.log('Select value changed:', value);
     };
 
     return (

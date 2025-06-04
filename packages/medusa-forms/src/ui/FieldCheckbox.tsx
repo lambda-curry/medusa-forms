@@ -36,7 +36,9 @@ export const FieldCheckbox: React.FC<FieldCheckboxProps> = ({
             {...fieldProps}
             ref={ref}
             checked={props.checked}
-            onChange={(e) => {}}
+            onChange={(_e) => {
+              // Handled by onCheckedChange
+            }}
             onCheckedChange={(checked) => {
               onChange?.(checked);
             }}

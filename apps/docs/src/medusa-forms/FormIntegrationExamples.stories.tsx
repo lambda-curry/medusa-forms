@@ -87,7 +87,6 @@ export const CompleteRegistrationFormExample: Story = {
 
       setIsSubmitting(false);
       setSubmitResult(`Registration successful for ${data.firstName} ${data.lastName}!`);
-      console.log('Registration data:', data);
     };
 
     const countryOptions = [
@@ -317,7 +316,6 @@ export const ProductCreationFormExample: Story = {
 
       setIsSubmitting(false);
       setSubmitResult(`Product "${data.name}" created successfully!`);
-      console.log('Product data:', data);
     };
 
     const categoryOptions = [
