@@ -9,6 +9,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
+// Regex patterns defined at top level for performance
+const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+const SKU_REGEX = /^[A-Z0-9-]+$/;
+const DIMENSIONS_REGEX = /^\d+(\.\d+)?\s*x\s*\d+(\.\d+)?\s*x\s*\d+(\.\d+)?\s*(inches?|in|cm|centimeters?)?$/i;
+
 const meta = {
   title: 'Medusa Forms/Form Integration Examples',
   component: () => null, // No single component
@@ -86,8 +92,8 @@ export const CompleteRegistrationFormExample: Story = {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       setIsSubmitting(false);
-      setSubmitResult(`Registration successful for ${data.firstName} ${data.lastName}!`);
-      console.log('Registration data:', data);
+      setSubmitResult(`Registration successful! Welcome, ${data.firstName}!`);
+      // Registration data processed successfully
     };
 
     const countryOptions = [
@@ -142,7 +148,7 @@ export const CompleteRegistrationFormExample: Story = {
                 rules={{
                   required: 'Email is required',
                   pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    value: EMAIL_REGEX,
                     message: 'Invalid email address',
                   },
                 }}
@@ -183,7 +189,7 @@ export const CompleteRegistrationFormExample: Story = {
                   required: 'Password is required',
                   minLength: { value: 8, message: 'Password must be at least 8 characters' },
                   pattern: {
-                    value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
+                    value: PASSWORD_REGEX,
                     message:
                       'Password must contain at least one uppercase letter, one lowercase letter, and one number',
                   },
@@ -317,7 +323,7 @@ export const ProductCreationFormExample: Story = {
 
       setIsSubmitting(false);
       setSubmitResult(`Product "${data.name}" created successfully!`);
-      console.log('Product data:', data);
+      // Product data processed successfully
     };
 
     const categoryOptions = [
@@ -380,7 +386,7 @@ export const ProductCreationFormExample: Story = {
                   rules={{
                     required: 'SKU is required',
                     pattern: {
-                      value: /^[A-Z0-9-]+$/,
+                      value: SKU_REGEX,
                       message: 'SKU must contain only uppercase letters, numbers, and hyphens',
                     },
                   }}
@@ -429,7 +435,7 @@ export const ProductCreationFormExample: Story = {
                 rules={{
                   required: 'Dimensions are required',
                   pattern: {
-                    value: /^\d+(\.\d+)?\s*x\s*\d+(\.\d+)?\s*x\s*\d+(\.\d+)?\s*(inches?|in|cm|centimeters?)?$/i,
+                    value: DIMENSIONS_REGEX,
                     message: 'Please enter dimensions in format: L x W x H (e.g., 10 x 8 x 6 inches)',
                   },
                 }}
@@ -590,7 +596,7 @@ export const FormValidationShowcase: Story = {
             rules={{
               required: 'Email is required',
               pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                value: EMAIL_REGEX,
                 message: 'Invalid email format',
               },
             }}

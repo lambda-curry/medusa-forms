@@ -128,7 +128,8 @@ const RequiredFieldForm = () => {
   });
 
   const onSubmit = (data: unknown) => {
-    console.log('Form submitted:', data);
+    // Form data processed successfully
+    alert(`Form data submitted: ${JSON.stringify(data)}`);
   };
 
   return (
@@ -242,7 +243,8 @@ const ValidationErrorForm = () => {
   });
 
   const onSubmit = (data: unknown) => {
-    console.log('Form submitted:', data);
+    // Form data processed successfully
+    alert(`Form data submitted: ${JSON.stringify(data)}`);
   };
 
   const hasError = !!form.formState.errors.message;
@@ -331,7 +333,8 @@ const ComprehensiveForm = () => {
   });
 
   const onSubmit = (data: unknown) => {
-    console.log('Comprehensive form submitted:', data);
+    // Form data processed successfully
+    alert(`Form data submitted: ${JSON.stringify(data)}`);
   };
 
   return (

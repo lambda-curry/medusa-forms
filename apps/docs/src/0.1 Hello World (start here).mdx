@@ -1,32 +1,140 @@
-# FORMS ARE HARD 🙃
-But everything is a form. And everything will continue to be a form until all the robots just talk to each other - that's probably the day I'll be able to retire. Until then, I'll keep working on forms and making them easier to implement.
+# Welcome to Medusa Forms! 🎯
 
-## Intro: *How did we get here?*
+**Controlled form components designed specifically for Medusa Admin and Medusa UI**
 
-From jQuery Validation to AngularJS to Redux Form to Formik, I've spent way too many late nights working on form libraries. It's been a large part of my web development career as a front-end developer starting in the early 2010s. 
+Medusa Forms provides a comprehensive set of controlled form components that integrate seamlessly with the Medusa ecosystem, built on top of `react-hook-form` and `@medusajs/ui`.
 
+## What is Medusa Forms?
 
-## Inspiration
+Medusa Forms is a collection of controlled form components extracted and optimized for use with Medusa Admin interfaces. Each component is designed to work perfectly with Medusa's design system while providing excellent developer experience through TypeScript support and comprehensive documentation.
 
-Now everything is trending back to "using the platform" with this concept of progressive enhancement. I'm a big fan of Ryan Florence [(@ryanflorence)](https://x.com/ryanflorence) and Michael Jackson [(@mjackson)](https://x.com/mjackson)'s work on [Remix](https://x.com/remix_run). Also, Alem Tuzlak [(@AlemTuzlak)](https://x.com/AlemTuzlak) and Thomas Fritz [(@thomasf)](https://x.com/thomasf)'s work on Remix Hook Form (and Remix Dev Tools) with their agency Forge42 [(@forge42dev)](https://x.com/forge42dev).
+## Key Features
 
-Special shoutout to Edmund Hung [(@edmundhung)](https://x.com/edmundhung) for his work on [React Conform](https://x.com/react_conform) which is another great library for working with forms. His stuff is so cool that people like Kent C. Dodds [(@kentcdodds)](https://x.com/kentcdodds) have adopted his library into his Epic Web stack.
+✅ **Medusa UI Integration** - Built specifically for Medusa Admin design system  
+✅ **Controlled Components** - All components work seamlessly with react-hook-form  
+✅ **TypeScript Support** - Full type definitions and IntelliSense  
+✅ **Comprehensive Documentation** - Interactive Storybook with examples  
+✅ **Performance Optimized** - Tree-shaking support and optimized bundle sizes  
 
+## Available Components
 
-## Goals
+### Form Controls
+- **ControlledInput** - Text input with validation
+- **ControlledTextArea** - Multi-line text input  
+- **ControlledSelect** - Dropdown selection with search
+- **ControlledCheckbox** - Checkbox input with proper styling
+- **ControlledDatePicker** - Date selection with calendar
+- **ControlledCurrencyInput** - Currency input with formatting
 
-1. Extremely easy implementation in React Frameworks such as Next.js and Remix.
-2. Well tested, documented, and maintained.
-3. Forward thinking - for example React 19 is coming and it has a few new features that could make working with forms even easier.
+### UI Components
+- **FieldWrapper** - Consistent field styling and error handling
+- **Label** - Accessible form labels
+- **ErrorMessage** - Standardized error display
 
-## WIP
+## Quick Start
 
-This is a work in progress. Please don't hesitate to message me with questions or collaboration opportunities.
+### Installation
 
-Next up:
+```bash
+npm install @lambdacurry/medusa-forms
+# or
+yarn add @lambdacurry/medusa-forms
+```
 
-- [ ] Add a few Next.js Examples
-- [ ] Add more components (React Select?)
-- [ ] Add some AI specific documentation - usefull for prompts and writing tests
-- [ ] Rename Default stories to Test stories and provide documentation on how they are used by the test runner with the play command.
-- [ ] Add documentation of base components to Storybook without tests (maybe they can have visual regression tests in the future)
+### Basic Usage
+
+```tsx
+import { useForm, FormProvider } from 'react-hook-form';
+import { ControlledInput, ControlledSelect } from '@lambdacurry/medusa-forms';
+
+function MyForm() {
+  const methods = useForm();
+
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(console.log)}>
+        <ControlledInput
+          name="title"
+          label="Product Title"
+          placeholder="Enter product title..."
+          rules={{ required: 'Title is required' }}
+        />
+        
+        <ControlledSelect
+          name="status"
+          label="Status"
+          options={[
+            { label: 'Draft', value: 'draft' },
+            { label: 'Published', value: 'published' }
+          ]}
+        />
+      </form>
+    </FormProvider>
+  );
+}
+```
+
+## Integration with Medusa
+
+These components are designed to work perfectly in Medusa Admin interfaces:
+
+```tsx
+import { RouteConfig } from "@medusajs/admin"
+import { FormProvider, useForm } from "react-hook-form"
+import { ControlledInput, ControlledCurrencyInput } from "@lambdacurry/medusa-forms"
+
+const ProductForm = () => {
+  const methods = useForm();
+  
+  return (
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(console.log)}>
+        <ControlledInput
+          name="title"
+          label="Product Title"
+        />
+        <ControlledCurrencyInput
+          name="price"
+          label="Price"
+          symbol="$"
+          code="USD"
+        />
+      </form>
+    </FormProvider>
+  )
+}
+
+export const config: RouteConfig = {
+  link: {
+    label: "Custom Product Form",
+  },
+}
+
+export default ProductForm
+```
+
+## Form Integration Examples
+
+Check out our **Form Integration Examples** story to see complete working forms with:
+- Validation schemas using Zod
+- Complex form layouts
+- Error handling
+- Real-world use cases
+
+## Dependencies
+
+- **React** ^19.0.0
+- **react-hook-form** ^7.51.0  
+- **@medusajs/ui** ^4.0.0
+- **zod** ^3.23.8 (for validation examples)
+
+## Next Steps
+
+1. 📖 **Explore Components** - Browse the component stories to see all available options
+2. 🎮 **Try Examples** - Check out the Form Integration Examples for complete implementations  
+3. 🔧 **Customize** - All components accept standard HTML props and can be styled as needed
+4. 🚀 **Build** - Start building your Medusa Admin forms with confidence!
+
+---
+
+**Ready to build better forms?** Start exploring the components in the sidebar! 👈

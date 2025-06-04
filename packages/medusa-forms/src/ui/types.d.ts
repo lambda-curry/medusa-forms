@@ -1,4 +1,7 @@
+import type { CalendarDate, CalendarDateTime, Granularity } from '@internationalized/date';
+import type { BaseDatePickerProps } from '@medusajs/ui';
 import type { ReactNode, RefAttributes } from 'react';
+import type * as React from 'react';
 import type { Props, SelectInstance } from 'react-select';
 import type { CreatableProps } from 'react-select/creatable';
 
@@ -34,41 +37,16 @@ export type MedusaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   size?: 'small' | 'base';
 };
 
-interface PickerProps extends CalendarProps {
-  /**
-   * The class name to apply on the date picker.
-   */
-  className?: string;
-  /**
-   * Whether the date picker's input is disabled.
-   */
-  disabled?: boolean;
-  /**
-   * Whether the date picker's input is required.
-   */
-  required?: boolean;
-  /**
-   * The date picker's placeholder.
-   */
-  placeholder?: string;
-  /**
-   * The date picker's size.
-   */
-  size?: 'small' | 'base';
-  /**
-   * Whether to show a time picker along with the date picker.
-   */
-  showTimePicker?: boolean;
-  /**
-   * Translation keys for the date picker. Use this to localize the date picker.
-   */
-  translations?: Translations;
-  id?: string;
-  'aria-invalid'?: boolean;
-  'aria-label'?: string;
-  'aria-labelledby'?: string;
-  'aria-required'?: boolean;
-}
+type Option = {
+  label: string;
+  value: string;
+};
+
+type IsMulti = boolean;
+type Group = {
+  label: string;
+  options: Option[];
+};
 
 type DatePickerValueProps = {
   defaultValue?: Date | null;
@@ -83,7 +61,7 @@ type DatePickerValueProps = {
   className?: string;
   modal?: boolean;
 };
-interface DatePickerProps
+export interface DatePickerProps
   extends Omit<BaseDatePickerProps<CalendarDateTime | CalendarDate>, keyof DatePickerValueProps>,
     DatePickerValueProps {}
 
@@ -111,7 +89,7 @@ export type SearchableSelectProps = Props<Option, IsMulti, Group> &
 export type CreatableSelectProps = CreatableProps<Option, IsMulti, Group> &
   RefAttributes<SelectInstance<Option, IsMulti, Group>>;
 
-interface SelectProps extends React.ComponentPropsWithRef {
+export interface SelectProps extends React.ComponentPropsWithRef {
   size?: 'base' | 'small';
   children?: React.ReactNode;
   value?: string;
@@ -120,7 +98,7 @@ interface SelectProps extends React.ComponentPropsWithRef {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?(open: boolean): void;
-  dir?: Direction;
+  dir?: 'ltr' | 'rtl';
   name?: string;
   autoComplete?: string;
   disabled?: boolean;

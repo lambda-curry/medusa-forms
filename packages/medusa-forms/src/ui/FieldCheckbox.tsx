@@ -36,7 +36,10 @@ export const FieldCheckbox: React.FC<FieldCheckboxProps> = ({
             {...fieldProps}
             ref={ref}
             checked={props.checked}
-            onChange={(e) => {}}
+            onChange={(_e) => {
+              // this is a noop since we handle the onChange in the onCheckedChange handler,
+              // but we need to pass a function to the onChange prop because the MedusaCheckbox component expects it
+            }}
             onCheckedChange={(checked) => {
               onChange?.(checked);
             }}
