@@ -4,15 +4,12 @@ import type { CreatableProps } from 'react-select/creatable';
 import type { 
   CalendarDateTime, 
   CalendarDate, 
-  CalendarProps,
   Granularity 
 } from '@internationalized/date';
 import type { 
-  BaseDatePickerProps,
-  Translations,
-  Direction
+  BaseDatePickerProps
 } from '@medusajs/ui';
-import * as React from 'react';
+import type * as React from 'react';
 
 export interface BasicFieldProps {
   label?: ReactNode;
@@ -57,41 +54,6 @@ type Group = {
   options: Option[];
 };
 
-interface PickerProps extends CalendarProps {
-  /**
-   * The class name to apply on the date picker.
-   */
-  className?: string;
-  /**
-   * Whether the date picker's input is disabled.
-   */
-  disabled?: boolean;
-  /**
-   * Whether the date picker's input is required.
-   */
-  required?: boolean;
-  /**
-   * The date picker's placeholder.
-   */
-  placeholder?: string;
-  /**
-   * The date picker's size.
-   */
-  size?: 'small' | 'base';
-  /**
-   * Whether to show a time picker along with the date picker.
-   */
-  showTimePicker?: boolean;
-  /**
-   * Translation keys for the date picker. Use this to localize the date picker.
-   */
-  translations?: Translations;
-  id?: string;
-  'aria-invalid'?: boolean;
-  'aria-label'?: string;
-  'aria-labelledby'?: string;
-  'aria-required'?: boolean;
-}
 
 type DatePickerValueProps = {
   defaultValue?: Date | null;
