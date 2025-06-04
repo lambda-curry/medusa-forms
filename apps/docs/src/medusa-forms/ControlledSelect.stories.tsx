@@ -457,6 +457,7 @@ export const InteractiveDemo: Story = {
 
     const handleSelectChange = (value: unknown) => {
       setSelectedValue(value as string);
+      // Value changed - could trigger side effects here
     };
 
     return (

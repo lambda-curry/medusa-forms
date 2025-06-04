@@ -1,0 +1,50 @@
+name: Run Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+            node-version: '22.9.0'
+  
+      - name: Setup Yarn Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install
+
+      - uses: dtinth/setup-github-actions-caching-for-turbo@v1
+
+      - name: Build packages
+        run: yarn build
+
+      - name: Build Storybook
+        run: yarn build-storybook
+
+      - name: Lint and format check
+        run: yarn format-and-lint
+
+      - name: Upload artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-failure
+          path: apps/docs/storybook-static
+          retention-days: 2
+
