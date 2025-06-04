@@ -5,7 +5,7 @@
     "clientKind": "git",
     "useIgnoreFile": false
   },
-  "files": { "ignoreUnknown": false, "ignore": [".turbo", "yarn.lock"] },
+  "files": { "ignoreUnknown": false, "ignore": [".turbo", "yarn.lock", "./apps/docs/storybook-static"] },
   "organizeImports": { "enabled": true },
   "formatter": {
     "enabled": true,
