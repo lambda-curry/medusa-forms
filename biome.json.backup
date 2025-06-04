@@ -71,24 +71,6 @@
           }
         }
       }
-    },
-    {
-      "include": ["**/*.d.ts"],
-      "linter": {
-        "rules": {
-          "correctness": {
-            "noUnusedVariables": "off",
-            "noUnusedImports": "off"
-          },
-          "style": {
-            "noNamespace": "off",
-            "useImportType": "off"
-          },
-          "suspicious": {
-            "noEmptyInterface": "off"
-          }
-        }
-      }
     }
   ]
 }

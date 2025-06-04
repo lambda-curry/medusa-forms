@@ -49,7 +49,7 @@ const RequiredFieldValidationComponent = () => {
   });
 
   const onSubmit = (data: unknown) => {
-    // Handle form submission
+    alert(`Form submitted with data: ${JSON.stringify(data, null, 2)}`);
   };
 
   return (
@@ -89,17 +89,32 @@ const DateFormatVariationsComponent = () => {
   const form = useForm({
     defaultValues: {
       usFormat: '',
+      euroFormat: '',
       isoFormat: '',
-      customFormat: '',
     },
   });
 
   return (
     <FormProvider {...form}>
       <div className="w-[400px] space-y-4">
-        <ControlledDatePicker name="usFormat" label="US Format (MM/DD/YYYY)" placeholder="MM/DD/YYYY" />
-        <ControlledDatePicker name="isoFormat" label="ISO Format (YYYY-MM-DD)" placeholder="YYYY-MM-DD" />
-        <ControlledDatePicker name="customFormat" label="Custom Format" placeholder="Select date" />
+        <ControlledDatePicker
+          name="usFormat"
+          label="US Format (MM/DD/YYYY)"
+          placeholder="MM/DD/YYYY"
+          dateFormat="MM/dd/yyyy"
+        />
+        <ControlledDatePicker
+          name="euroFormat"
+          label="European Format (DD/MM/YYYY)"
+          placeholder="DD/MM/YYYY"
+          dateFormat="dd/MM/yyyy"
+        />
+        <ControlledDatePicker
+          name="isoFormat"
+          label="ISO Format (YYYY-MM-DD)"
+          placeholder="YYYY-MM-DD"
+          dateFormat="yyyy-MM-dd"
+        />
       </div>
     </FormProvider>
   );
@@ -119,17 +134,37 @@ const DisabledDatesComponent = () => {
   const form = useForm({
     defaultValues: {
       noPastDates: '',
+      noFutureDates: '',
+      specificDisabled: '',
     },
   });
 
+  const today = new Date();
+  const oneWeekAgo = new Date();
+  oneWeekAgo.setDate(today.getDate() - 7);
+  const oneWeekFromNow = new Date();
+  oneWeekFromNow.setDate(today.getDate() + 7);
+
   return (
     <FormProvider {...form}>
-      <div className="w-[400px]">
+      <div className="w-[400px] space-y-4">
         <ControlledDatePicker
           name="noPastDates"
           label="No Past Dates"
           placeholder="Future dates only"
-          minDate={new Date()}
+          minDate={today}
+        />
+        <ControlledDatePicker
+          name="noFutureDates"
+          label="No Future Dates"
+          placeholder="Past dates only"
+          maxDate={today}
+        />
+        <ControlledDatePicker
+          name="specificDisabled"
+          label="Specific Date Range Disabled"
+          placeholder="Excludes last/next week"
+          excludeDateIntervals={[{ start: oneWeekAgo, end: oneWeekFromNow }]}
         />
       </div>
     </FormProvider>

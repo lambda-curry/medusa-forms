@@ -1,6 +1,10 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { ControlledInput } from '@lambdacurry/medusa-forms/controlled/ControlledInput';
 import { ControlledTextArea } from '@lambdacurry/medusa-forms/controlled/ControlledTextArea';
+import { Button } from '@medusajs/ui';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
 
 const meta = {
   title: 'Medusa Forms/Controlled Text Area',
@@ -9,13 +13,14 @@ const meta = {
     layout: 'centered',
   },
   tags: ['autodocs'],
+  argTypes: {},
 } satisfies Meta<typeof ControlledTextArea>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 // Basic Usage Story
-const BasicTextAreaForm = () => {
+const BasicUsageForm = () => {
   const form = useForm({
     defaultValues: {
       description: '',
@@ -24,20 +29,100 @@ const BasicTextAreaForm = () => {
 
   return (
     <FormProvider {...form}>
-      <div className="w-[400px] space-y-4">
-        <ControlledTextArea name="description" label="Description" placeholder="Enter your description here..." />
+      <div className="w-[400px]">
+        <ControlledTextArea
+          name="description"
+          label="Description"
+          placeholder="Enter your description here..."
+          rows={4}
+        />
       </div>
     </FormProvider>
   );
 };
 
 export const BasicUsage: Story = {
-  render: () => <BasicTextAreaForm />,
+  args: {
+    name: 'description',
+    label: 'Description',
+    placeholder: 'Enter your description here...',
+    rows: 4,
+  },
+  render: () => <BasicUsageForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'A basic textarea with react-hook-form integration for multi-line text input.',
+      },
+    },
+  },
 };
 
-// Required Validation Story
-const RequiredValidationForm = () => {
+// Character Limits Story
+const CharacterLimitsSchema = z.object({
+  bio: z.string().max(150, 'Bio must be 150 characters or less'),
+});
+
+const CharacterLimitsForm = () => {
   const form = useForm({
+    resolver: zodResolver(CharacterLimitsSchema),
+    defaultValues: {
+      bio: '',
+    },
+  });
+
+  const bioValue = form.watch('bio');
+  const characterCount = bioValue?.length || 0;
+  const maxLength = 150;
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-2">
+        <ControlledTextArea
+          name="bio"
+          label="Bio"
+          placeholder="Tell us about yourself..."
+          rows={4}
+          maxLength={maxLength}
+          rules={{
+            required: 'Bio is required',
+            maxLength: { value: 150, message: 'Bio must be 150 characters or less' },
+          }}
+        />
+        <div className="text-sm text-gray-500 text-right">
+          {characterCount}/{maxLength} characters
+        </div>
+      </div>
+    </FormProvider>
+  );
+};
+
+export const CharacterLimits: Story = {
+  args: {
+    name: 'bio',
+    label: 'Bio',
+    placeholder: 'Tell us about yourself...',
+    rows: 4,
+    maxLength: 150,
+  },
+  render: () => <CharacterLimitsForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Textarea with character count validation, counter display, and limit enforcement.',
+      },
+    },
+  },
+};
+
+// Required Field Validation Story
+const RequiredFieldSchema = z.object({
+  feedback: z.string().min(1, 'Feedback is required').min(10, 'Feedback must be at least 10 characters'),
+});
+
+const RequiredFieldForm = () => {
+  const form = useForm({
+    resolver: zodResolver(RequiredFieldSchema),
     defaultValues: {
       feedback: '',
     },
@@ -52,32 +137,44 @@ const RequiredValidationForm = () => {
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-[400px] space-y-4">
         <ControlledTextArea
           name="feedback"
-          label="Feedback"
+          label="Feedback *"
           placeholder="Please provide your feedback..."
+          rows={5}
           rules={{
             required: 'Feedback is required',
+            minLength: { value: 10, message: 'Feedback must be at least 10 characters' },
           }}
         />
-        <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-          Submit
-        </button>
-        {form.formState.errors.feedback && (
-          <p className="text-red-500 text-sm">{form.formState.errors.feedback.message}</p>
-        )}
+        <Button type="submit" variant="primary" className="w-full">
+          Submit Feedback
+        </Button>
       </form>
     </FormProvider>
   );
 };
 
-export const RequiredValidation: Story = {
-  render: () => <RequiredValidationForm />,
+export const RequiredFieldValidation: Story = {
+  args: {
+    name: 'feedback',
+    label: 'Feedback',
+    placeholder: 'Please provide your feedback...',
+    rows: 5,
+  },
+  render: () => <RequiredFieldForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Required field validation with error state display and custom validation messages.',
+      },
+    },
+  },
 };
 
-// Character Limit Story
-const CharacterLimitForm = () => {
+// Auto-resize Functionality Story
+const AutoResizeForm = () => {
   const form = useForm({
     defaultValues: {
-      limitedText: '',
+      content: '',
     },
   });
 
@@ -85,45 +182,221 @@ const CharacterLimitForm = () => {
     <FormProvider {...form}>
       <div className="w-[400px] space-y-4">
         <ControlledTextArea
-          name="limitedText"
-          label="Limited Text (max 100 characters)"
-          placeholder="Type up to 100 characters..."
-          rules={{
-            maxLength: {
-              value: 100,
-              message: 'Text cannot exceed 100 characters',
-            },
+          name="content"
+          label="Auto-resize Content"
+          placeholder="Start typing and watch the textarea grow..."
+          rows={2}
+          style={{
+            minHeight: '60px',
+            maxHeight: '200px',
+            resize: 'none',
+            overflow: 'hidden',
+          }}
+          onInput={(e) => {
+            const target = e.target as HTMLTextAreaElement;
+            target.style.height = 'auto';
+            target.style.height = `${Math.min(target.scrollHeight, 200)}px`;
           }}
         />
-        {form.formState.errors.limitedText && (
-          <p className="text-red-500 text-sm">{form.formState.errors.limitedText.message}</p>
-        )}
+        <div className="text-sm text-gray-500">
+          This textarea automatically adjusts its height based on content (min: 60px, max: 200px)
+        </div>
       </div>
     </FormProvider>
   );
 };
 
-export const CharacterLimit: Story = {
-  render: () => <CharacterLimitForm />,
+export const AutoResizeFunctionality: Story = {
+  args: {
+    name: 'content',
+    label: 'Auto-resize Content',
+    placeholder: 'Start typing and watch the textarea grow...',
+    rows: 2,
+  },
+  render: () => <AutoResizeForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Dynamic height adjustment with content-based resizing and min/max height constraints.',
+      },
+    },
+  },
 };
 
-// Disabled State Story
-const DisabledTextAreaForm = () => {
+// Validation Error States Story
+const ValidationErrorSchema = z.object({
+  message: z
+    .string()
+    .min(1, 'Message is required')
+    .min(20, 'Message must be at least 20 characters')
+    .max(500, 'Message must be less than 500 characters')
+    .refine((val) => !val.includes('spam'), 'Message cannot contain spam'),
+});
+
+const ValidationErrorForm = () => {
   const form = useForm({
+    resolver: zodResolver(ValidationErrorSchema),
     defaultValues: {
-      disabledText: 'This text area is disabled',
+      message: '',
     },
+    mode: 'onChange', // Validate on change for immediate feedback
   });
+
+  const onSubmit = (data: unknown) => {
+    alert(`Form submitted with data: ${JSON.stringify(data, null, 2)}`);
+  };
+
+  const hasError = !!form.formState.errors.message;
+  const messageValue = form.watch('message');
 
   return (
     <FormProvider {...form}>
-      <div className="w-[400px] space-y-4">
-        <ControlledTextArea name="disabledText" label="Disabled Text Area" disabled />
-      </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-[400px] space-y-4">
+        <div className="space-y-2">
+          <ControlledTextArea
+            name="message"
+            label="Message"
+            placeholder="Enter your message (20-500 characters, no spam)..."
+            rows={6}
+            className={hasError ? 'border-red-500 focus:border-red-500' : ''}
+            rules={{
+              required: 'Message is required',
+              minLength: { value: 20, message: 'Message must be at least 20 characters' },
+              maxLength: { value: 500, message: 'Message must be less than 500 characters' },
+              validate: (value: string) => !value.includes('spam') || 'Message cannot contain spam',
+            }}
+          />
+          <div className="flex justify-between text-sm">
+            <div>
+              {form.formState.errors.message && (
+                <span className="text-red-600">{form.formState.errors.message.message}</span>
+              )}
+            </div>
+            <div className="text-gray-500">{messageValue?.length || 0}/500</div>
+          </div>
+        </div>
+
+        <div className="space-y-2 text-sm text-gray-600">
+          <p>
+            <strong>Validation Rules:</strong>
+          </p>
+          <ul className="list-disc list-inside space-y-1">
+            <li>Required field</li>
+            <li>Minimum 20 characters</li>
+            <li>Maximum 500 characters</li>
+            <li>Cannot contain the word "spam"</li>
+          </ul>
+        </div>
+
+        <Button type="submit" variant="primary" className="w-full" disabled={!form.formState.isValid}>
+          Submit Message
+        </Button>
+      </form>
     </FormProvider>
   );
 };
 
-export const DisabledState: Story = {
-  render: () => <DisabledTextAreaForm />,
+export const ValidationErrorStates: Story = {
+  args: {
+    name: 'message',
+    label: 'Message',
+    placeholder: 'Enter your message (20-500 characters, no spam)...',
+    rows: 6,
+  },
+  render: () => <ValidationErrorForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Various error scenarios with error message display and field highlighting.',
+      },
+    },
+  },
+};
+
+// Comprehensive Form Example
+const ComprehensiveSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
+  description: z.string().min(1, 'Description is required').min(50, 'Description must be at least 50 characters'),
+  notes: z.string().optional(),
+});
+
+const ComprehensiveForm = () => {
+  const form = useForm({
+    resolver: zodResolver(ComprehensiveSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      notes: '',
+    },
+    mode: 'onChange',
+  });
+
+  const onSubmit = (data: unknown) => {
+    alert(`Comprehensive form submitted: ${JSON.stringify(data, null, 2)}`);
+  };
+
+  return (
+    <FormProvider {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-[500px] space-y-6">
+        <div>
+          <ControlledInput
+            name="title"
+            label="Title *"
+            placeholder="Enter a title..."
+            rules={{
+              required: 'Title is required',
+              maxLength: { value: 100, message: 'Title must be less than 100 characters' },
+            }}
+          />
+        </div>
+
+        <div>
+          <ControlledTextArea
+            name="description"
+            label="Description *"
+            placeholder="Provide a detailed description (minimum 50 characters)..."
+            rows={4}
+            rules={{
+              required: 'Description is required',
+              minLength: { value: 50, message: 'Description must be at least 50 characters' },
+            }}
+          />
+        </div>
+
+        <div>
+          <ControlledTextArea
+            name="notes"
+            label="Additional Notes (Optional)"
+            placeholder="Any additional notes or comments..."
+            rows={3}
+          />
+        </div>
+
+        <div className="flex gap-4">
+          <Button type="button" variant="secondary" className="flex-1" onClick={() => form.reset()}>
+            Reset Form
+          </Button>
+          <Button type="submit" variant="primary" className="flex-1" disabled={!form.formState.isValid}>
+            Submit
+          </Button>
+        </div>
+
+        <div className="text-sm text-gray-600">
+          <p>Form Status: {form.formState.isValid ? '✅ Valid' : '❌ Invalid'}</p>
+          <p>Errors: {Object.keys(form.formState.errors).length}</p>
+        </div>
+      </form>
+    </FormProvider>
+  );
+};
+
+export const ComprehensiveFormExample: Story = {
+  render: () => <ComprehensiveForm />,
+  parameters: {
+    docs: {
+      description: {
+        story: 'Complete form example with multiple text areas, validation, and form state management.',
+      },
+    },
+  },
 };
