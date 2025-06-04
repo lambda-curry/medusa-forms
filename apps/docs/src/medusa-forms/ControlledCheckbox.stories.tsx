@@ -37,6 +37,7 @@ const BasicCheckboxForm = () => {
 };
 
 export const BasicUsage: Story = {
+  args: { name: 'acceptTerms', label: 'I accept the terms and conditions' },
   render: () => <BasicCheckboxForm />,
 };
 
@@ -59,6 +60,7 @@ const DefaultCheckedForm = () => {
 };
 
 export const DefaultChecked: Story = {
+  args: { name: 'newsletter', label: 'Subscribe to newsletter', checked: true },
   render: () => <DefaultCheckedForm />,
 };
 
@@ -81,6 +83,7 @@ const DefaultUncheckedForm = () => {
 };
 
 export const DefaultUnchecked: Story = {
+  args: { name: 'marketing', label: 'Receive marketing emails' },
   render: () => <DefaultUncheckedForm />,
 };
 
@@ -93,8 +96,9 @@ const RequiredValidationForm = () => {
     mode: 'onChange',
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Record<string, unknown>) => {
     // Form data processed successfully
+    alert(`Form data submitted: ${JSON.stringify(data)}`);
   };
 
   return (
@@ -121,6 +125,7 @@ const RequiredValidationForm = () => {
 };
 
 export const RequiredValidation: Story = {
+  args: { name: 'requiredField', label: 'This field is required' },
   render: () => <RequiredValidationForm />,
 };
 
@@ -141,7 +146,7 @@ const CustomValidationForm = () => {
           label="I agree to the privacy policy"
           rules={{
             required: 'Please accept our privacy policy to continue',
-            validate: (value) => value === true || 'You must agree to the privacy policy',
+            validate: (value: boolean) => value === true || 'You must agree to the privacy policy',
           }}
         />
         <div className="text-sm text-gray-600">Has errors: {form.formState.errors.agreement ? 'Yes' : 'No'}</div>
@@ -154,6 +159,7 @@ const CustomValidationForm = () => {
 };
 
 export const CustomValidationMessage: Story = {
+  args: { name: 'agreement', label: 'I agree to the privacy policy' },
   render: () => <CustomValidationForm />,
 };
 
@@ -184,6 +190,7 @@ const ErrorStateForm = () => {
 };
 
 export const ErrorState: Story = {
+  args: { name: 'errorField', label: 'Checkbox with error state' },
   render: () => <ErrorStateForm />,
 };
 
@@ -208,6 +215,7 @@ const DisabledStateForm = () => {
 };
 
 export const DisabledState: Story = {
+  args: { name: 'disabledExample', label: 'Disabled checkbox example' },
   render: () => <DisabledStateForm />,
 };
 
@@ -230,11 +238,12 @@ const MultipleCheckboxesForm = () => {
     form.setValue('selectAll', allSelected);
   }, [allSelected, form]);
 
-  const handleSelectAll = (checked: boolean) => {
-    form.setValue('option1', checked);
-    form.setValue('option2', checked);
-    form.setValue('option3', checked);
-    form.setValue('selectAll', checked);
+  const handleSelectAll = (checked: string | boolean) => {
+    const isChecked = checked === true;
+    form.setValue('option1', isChecked);
+    form.setValue('option2', isChecked);
+    form.setValue('option3', isChecked);
+    form.setValue('selectAll', isChecked);
   };
 
   return (
@@ -260,6 +269,7 @@ const MultipleCheckboxesForm = () => {
 };
 
 export const MultipleCheckboxes: Story = {
+  args: { name: 'selectAll', label: 'Select All' },
   render: () => <MultipleCheckboxesForm />,
 };
 
@@ -276,7 +286,7 @@ const CompleteFormExampleComponent = () => {
     mode: 'onChange',
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: Record<string, unknown>) => {
     alert(`Form submitted with data: ${JSON.stringify(data, null, 2)}`);
   };
 
@@ -284,8 +294,11 @@ const CompleteFormExampleComponent = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-[400px] space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1">Username</label>
+          <label htmlFor="username" className="block text-sm font-medium mb-1">
+            Username
+          </label>
           <input
+            id="username"
             {...form.register('username', { required: 'Username is required' })}
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
             placeholder="Enter username"
@@ -293,8 +306,11 @@ const CompleteFormExampleComponent = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="email" className="block text-sm font-medium mb-1">
+            Email
+          </label>
           <input
+            id="email"
             {...form.register('email', {
               required: 'Email is required',
               pattern: {
@@ -342,5 +358,6 @@ const CompleteFormExampleComponent = () => {
 };
 
 export const CompleteFormExample: Story = {
+  args: { name: 'exampleForm', label: 'Complete form example' },
   render: () => <CompleteFormExampleComponent />,
 };

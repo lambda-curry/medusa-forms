@@ -61,7 +61,7 @@ type DatePickerValueProps = {
   className?: string;
   modal?: boolean;
 };
-interface DatePickerProps
+export interface DatePickerProps
   extends Omit<BaseDatePickerProps<CalendarDateTime | CalendarDate>, keyof DatePickerValueProps>,
     DatePickerValueProps {}
 
@@ -89,7 +89,7 @@ export type SearchableSelectProps = Props<Option, IsMulti, Group> &
 export type CreatableSelectProps = CreatableProps<Option, IsMulti, Group> &
   RefAttributes<SelectInstance<Option, IsMulti, Group>>;
 
-interface SelectProps extends React.ComponentPropsWithRef {
+export interface SelectProps extends React.ComponentPropsWithRef {
   size?: 'base' | 'small';
   children?: React.ReactNode;
   value?: string;
@@ -98,7 +98,7 @@ interface SelectProps extends React.ComponentPropsWithRef {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?(open: boolean): void;
-  dir?: Direction;
+  dir?: 'ltr' | 'rtl';
   name?: string;
   autoComplete?: string;
   disabled?: boolean;

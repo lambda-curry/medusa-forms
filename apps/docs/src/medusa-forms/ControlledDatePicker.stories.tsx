@@ -50,6 +50,7 @@ const RequiredFieldValidationComponent = () => {
 
   const onSubmit = (data: unknown) => {
     // Form data processed successfully
+    alert(`Form data submitted: ${JSON.stringify(data)}`);
   };
 
   return (

@@ -39,32 +39,36 @@ const FileUpload: FC<FileUploadProps> = ({
     }
   };
 
+  const extractFilesFromItems = (items: DataTransferItemList): File[] => {
+    const files: File[] = [];
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file && filetypes.indexOf(file.type) > -1) {
+          files.push(file);
+        }
+      }
+    }
+    return files;
+  };
+
+  const extractFilesFromFileList = (fileList: FileList): File[] => {
+    const files: File[] = [];
+    for (const file of fileList) {
+      if (filetypes.indexOf(file.type) > -1) {
+        files.push(file);
+      }
+    }
+    return files;
+  };
+
   const handleFileDrop = (e: DragEvent<HTMLDivElement>) => {
     setUploadError(false);
     e.preventDefault();
 
-    const files: File[] = [];
-
-    if (e.dataTransfer.items) {
-      // use DataTransferItemList interface to access the file(s)
-      for (let i = 0; i < e.dataTransfer.items.length; i += 1) {
-        // if dropped items are not files, reject them
-        if (e.dataTransfer.items[i].kind === 'file') {
-          const file = e.dataTransfer.items[i].getAsFile();
-
-          if (file && filetypes.indexOf(file.type) > -1) {
-            files.push(file);
-          }
-        }
-      }
-    } else {
-      // use DataTransfer interface to access the file(s)
-      for (let i = 0; i < e.dataTransfer.files.length; i += 1) {
-        if (filetypes.indexOf(e.dataTransfer.files[i].type) > -1) {
-          files.push(e.dataTransfer.files[i]);
-        }
-      }
-    }
+    const files = e.dataTransfer.items
+      ? extractFilesFromItems(e.dataTransfer.items)
+      : extractFilesFromFileList(e.dataTransfer.files);
 
     if (files.length === 1) {
       onFileChosen(files);
