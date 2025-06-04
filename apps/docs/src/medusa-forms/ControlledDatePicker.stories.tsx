@@ -48,7 +48,7 @@ const RequiredFieldValidationComponent = () => {
     },
   });
 
-  const onSubmit = (_data: unknown) => {
+  const onSubmit = (data: unknown) => {
     // Handle form submission
   };
 
