@@ -5,7 +5,10 @@
     "clientKind": "git",
     "useIgnoreFile": false
   },
-  "files": { "ignoreUnknown": false, "ignore": [".turbo", "yarn.lock", "./apps/docs/storybook-static"] },
+  "files": {
+    "ignoreUnknown": false,
+    "ignore": [".turbo", "yarn.lock", "./apps/docs/storybook-static", "./packages/medusa-forms/dist"]
+  },
   "organizeImports": { "enabled": true },
   "formatter": {
     "enabled": true,
@@ -55,5 +58,17 @@
         "useImportExtensions": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["./apps/docs/**/*"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedFunctionParameters": "off"
+          }
+        }
+      }
+    }
+  ]
 }
