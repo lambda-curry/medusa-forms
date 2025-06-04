@@ -2,10 +2,7 @@
   "name": "medusa-forms",
   "version": "0.1.1",
   "private": true,
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "start": "yarn dev",
     "dev": "turbo run dev",
