@@ -10,6 +10,33 @@ You can install components from this registry using the shadcn CLI:
 npx shadcn@latest add --registry https://raw.githubusercontent.com/lambda-curry/medusa-forms/main/packages/medusa-forms/registry.json input
 ```
 
+## Registry Maintenance
+
+The registry files are automatically generated from source components using a build script. This ensures the registry stays in sync with the actual component code without manual maintenance.
+
+### Regenerating Registry Files
+
+To regenerate the registry files after making changes to components:
+
+```bash
+yarn build:registry
+```
+
+This script:
+- Scans component source files in `src/ui/` and `src/controlled/`
+- Generates registry JSON files with file references (not inline content)
+- Updates the main `registry.json` with proper metadata
+- Validates that all referenced source files exist
+
+### Adding New Components
+
+To add a new component to the registry:
+
+1. Create your component in the appropriate directory (`src/ui/` or `src/controlled/`)
+2. Add the component configuration to `scripts/build-registry.js` in the `COMPONENTS` object
+3. Run `yarn build:registry` to generate the registry files
+4. Commit both the source component and generated registry files
+
 ## Available Components
 
 ### Base UI Components
@@ -115,4 +142,3 @@ Controlled components use react-hook-form:
 - `FieldWrapperProps` - Wrapper component props
 - Component-specific props (`InputProps`, `SelectProps`, etc.)
 - React Hook Form integration types
-

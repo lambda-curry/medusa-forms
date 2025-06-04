@@ -1,7 +1,7 @@
 {
   "name": "currency-input",
   "type": "registry:ui",
-  "description": "currency-input component",
+  "description": "Base currency input component",
   "dependencies": [
     "@medusajs/ui"
   ],
@@ -11,8 +11,7 @@
   "files": [
     {
       "name": "currency-input.tsx",
-      "content": "import { CurrencyInput as MedusaCurrencyInput } from '@medusajs/ui';\nimport { forwardRef } from 'react';\nimport { FieldWrapper } from './FieldWrapper';\nimport type { BasicFieldProps, MedusaCurrencyInputProps } from './types';\n\nexport type CurrencyInputProps = MedusaCurrencyInputProps & BasicFieldProps;\n\nconst Wrapper = FieldWrapper<CurrencyInputProps>;\n\nexport const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>((props, ref) => (\n  <Wrapper {...props}>{(inputProps) => <MedusaCurrencyInput {...inputProps} ref={ref} />}</Wrapper>\n));\n\nCurrencyInput.displayName = 'CurrencyInput';\n"
+      "path": "src/ui/CurrencyInput.tsx"
     }
   ]
 }
-

@@ -1,7 +1,7 @@
 {
   "name": "controlled-input",
   "type": "registry:ui",
-  "description": "An input component with react-hook-form integration",
+  "description": "Input component with react-hook-form integration",
   "dependencies": [
     "react-hook-form"
   ],
@@ -11,8 +11,7 @@
   "files": [
     {
       "name": "controlled-input.tsx",
-      "content": "import type { ComponentProps } from 'react';\nimport {\n  Controller,\n  type ControllerProps,\n  type FieldValues,\n  type Path,\n  type RegisterOptions,\n  useFormContext,\n} from 'react-hook-form';\nimport { Input, type InputProps } from '../ui/Input';\n\nexport type ControlledInputProps<T extends FieldValues> = InputProps &\n  Omit<ControllerProps, 'render'> & {\n    name: Path<T>;\n    rules?: Omit<RegisterOptions<T, Path<T>>, 'disabled' | 'valueAsNumber' | 'valueAsDate' | 'setValueAs'>;\n  } & ComponentProps<typeof Input> &\n  Omit<ControllerProps<T>, 'render'>;\n\nexport const ControlledInput = <T extends FieldValues>({\n  name,\n  rules,\n  onChange,\n  ...props\n}: ControlledInputProps<T>) => {\n  const {\n    control,\n    formState: { errors },\n  } = useFormContext<T>();\n\n  return (\n    <Controller\n      control={control}\n      name={name}\n      rules={rules as Omit<RegisterOptions<T, Path<T>>, 'disabled' | 'valueAsNumber' | 'valueAsDate' | 'setValueAs'>}\n      render={({ field }) => (\n        <Input\n          {...field}\n          {...props}\n          labelClassName={props.labelClassName}\n          formErrors={errors}\n          onChange={(evt) => {\n            if (onChange) {\n              onChange(evt);\n            }\n            field.onChange(evt);\n          }}\n        />\n      )}\n    />\n  );\n};\n\n"
+      "path": "src/controlled/ControlledInput.tsx"
     }
   ]
 }
-
