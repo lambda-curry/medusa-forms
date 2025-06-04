@@ -1,0 +1,18 @@
+{
+  "name": "controlled-datepicker",
+  "type": "registry:ui",
+  "description": "A datepicker component with react-hook-form integration",
+  "dependencies": [
+    "react-hook-form"
+  ],
+  "registryDependencies": [
+    "datepicker"
+  ],
+  "files": [
+    {
+      "name": "controlled-datepicker.tsx",
+      "content": "import {\n  Controller,\n  type ControllerProps,\n  type FieldValues,\n  type Path,\n  type RegisterOptions,\n  useFormContext,\n} from 'react-hook-form';\nimport { DatePickerInput, type DatePickerProps } from '../ui/DatePicker';\n\nexport type ControlledDatePickerProps<T extends FieldValues> = DatePickerProps &\n  Omit<ControllerProps, 'render' | 'control'> & {\n    name: Path<T>;\n  };\n\nexport const ControlledDatePicker = <T extends FieldValues>({\n  name,\n  rules,\n  ...props\n}: ControlledDatePickerProps<T>) => {\n  const { control } = useFormContext<T>();\n  return (\n    <Controller<T>\n      control={control}\n      name={name}\n      rules={rules as Omit<RegisterOptions<T, Path<T>>, 'disabled' | 'valueAsNumber' | 'valueAsDate' | 'setValueAs'>}\n      render={({ field }) => <DatePickerInput {...field} {...props} />}\n    />\n  );\n};\n\n"
+    }
+  ]
+}
+
