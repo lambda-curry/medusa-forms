@@ -94,7 +94,7 @@ const RequiredValidationForm = () => {
   });
 
   const onSubmit = (data: any) => {
-    console.log('Form submitted:', data);
+    // Form data processed successfully
   };
 
   return (

@@ -49,7 +49,7 @@ const RequiredFieldValidationComponent = () => {
   });
 
   const onSubmit = (data: unknown) => {
-    console.log('Form submitted:', data);
+    // Form data processed successfully
   };
 
   return (
