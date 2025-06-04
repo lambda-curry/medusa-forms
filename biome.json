@@ -55,5 +55,22 @@
         "useImportExtensions": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "include": ["apps/docs/**/*.stories.tsx", "apps/docs/**/*.stories.ts"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off",
+            "noUnusedImports": "off",
+            "noUnusedFunctionParameters": "off"
+          },
+          "performance": {
+            "useTopLevelRegex": "off"
+          }
+        }
+      }
+    }
+  ]
 }
