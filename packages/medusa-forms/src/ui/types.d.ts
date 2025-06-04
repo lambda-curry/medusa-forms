@@ -1,3 +1,5 @@
+import type { CalendarDate, CalendarDateTime, CalendarProps, Granularity } from '@internationalized/date';
+import type { BaseDatePickerProps, Direction, Translations } from '@medusajs/ui';
 import type { ReactNode, RefAttributes } from 'react';
 import type { Props, SelectInstance } from 'react-select';
 import type { CreatableProps } from 'react-select/creatable';
@@ -33,6 +35,14 @@ export type MedusaCurrencyInputProps = Omit<React.InputHTMLAttributes<HTMLInputE
 export type MedusaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   size?: 'small' | 'base';
 };
+
+type Option = {
+  label: string;
+  value: string;
+};
+
+type IsMulti = boolean;
+type Group = any;
 
 interface PickerProps extends CalendarProps {
   /**
