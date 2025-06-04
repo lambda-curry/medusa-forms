@@ -1,0 +1,13 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "moduleResolution": "bundler",
+    "paths": {
+      "@lambdacurry/medusa-forms/*": ["../../packages/medusa-forms/src/*"],
+      "@lambdacurry/medusa-forms/lib/*": ["../../packages/medusa-forms/lib/*"]
+    }
+  },
+  "include": ["lib", "src"],
+  "exclude": ["dist", "build", "node_modules"]
+}
