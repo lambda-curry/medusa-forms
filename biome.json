@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": [".turbo", "yarn.lock", "./apps/docs/storybook-static", "./packages/medusa-forms/dist"]
+    "ignore": [".turbo", "yarn.lock", "./apps/docs/storybook-static", "./packages/medusa-forms/dist", "**/package.json"]
   },
   "organizeImports": { "enabled": true },
   "formatter": {
