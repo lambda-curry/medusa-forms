@@ -1,0 +1,17 @@
+{
+  "name": "textarea",
+  "type": "registry:ui",
+  "description": "Base textarea component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper"
+  ],
+  "files": [
+    {
+      "name": "textarea.tsx",
+      "path": "src/ui/TextArea.tsx"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "controlled-select",
+  "type": "registry:ui",
+  "description": "Select component with react-hook-form integration",
+  "dependencies": [
+    "react-hook-form"
+  ],
+  "registryDependencies": [
+    "select"
+  ],
+  "files": [
+    {
+      "name": "controlled-select.tsx",
+      "path": "src/controlled/ControlledSelect.tsx"
+    }
+  ]
+}

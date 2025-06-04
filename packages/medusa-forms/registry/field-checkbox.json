@@ -1,0 +1,18 @@
+{
+  "name": "field-checkbox",
+  "type": "registry:ui",
+  "description": "Base checkbox component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper",
+    "label"
+  ],
+  "files": [
+    {
+      "name": "fieldcheckbox.tsx",
+      "path": "src/ui/FieldCheckbox.tsx"
+    }
+  ]
+}
