@@ -44,32 +44,32 @@ yarn add @lambdacurry/medusa-forms
 ### Basic Usage
 
 ```tsx
-import { useForm } from 'react-hook-form';
+import { useForm, FormProvider } from 'react-hook-form';
 import { ControlledInput, ControlledSelect } from '@lambdacurry/medusa-forms';
 
 function MyForm() {
-  const { control, handleSubmit } = useForm();
+  const methods = useForm();
 
   return (
-    <form onSubmit={handleSubmit(console.log)}>
-      <ControlledInput
-        control={control}
-        name="title"
-        label="Product Title"
-        placeholder="Enter product title..."
-        rules={{ required: 'Title is required' }}
-      />
-      
-      <ControlledSelect
-        control={control}
-        name="status"
-        label="Status"
-        options={[
-          { label: 'Draft', value: 'draft' },
-          { label: 'Published', value: 'published' }
-        ]}
-      />
-    </form>
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(console.log)}>
+        <ControlledInput
+          name="title"
+          label="Product Title"
+          placeholder="Enter product title..."
+          rules={{ required: 'Title is required' }}
+        />
+        
+        <ControlledSelect
+          name="status"
+          label="Status"
+          options={[
+            { label: 'Draft', value: 'draft' },
+            { label: 'Published', value: 'published' }
+          ]}
+        />
+      </form>
+    </FormProvider>
   );
 }
 ```
@@ -80,25 +80,27 @@ These components are designed to work perfectly in Medusa Admin interfaces:
 
 ```tsx
 import { RouteConfig } from "@medusajs/admin"
+import { FormProvider, useForm } from "react-hook-form"
 import { ControlledInput, ControlledCurrencyInput } from "@lambdacurry/medusa-forms"
 
 const ProductForm = () => {
-  // Your Medusa admin form logic here
+  const methods = useForm();
+  
   return (
-    <div>
-      <ControlledInput
-        control={control}
-        name="title"
-        label="Product Title"
-      />
-      <ControlledCurrencyInput
-        control={control}
-        name="price"
-        label="Price"
-        symbol="$"
-        code="USD"
-      />
-    </div>
+    <FormProvider {...methods}>
+      <form onSubmit={methods.handleSubmit(console.log)}>
+        <ControlledInput
+          name="title"
+          label="Product Title"
+        />
+        <ControlledCurrencyInput
+          name="price"
+          label="Price"
+          symbol="$"
+          code="USD"
+        />
+      </form>
+    </FormProvider>
   )
 }
 
@@ -136,4 +138,3 @@ Check out our **Form Integration Examples** story to see complete working forms 
 ---
 
 **Ready to build better forms?** Start exploring the components in the sidebar! 👈
-
