@@ -1,0 +1,264 @@
+import { Meta } from '@storybook/blocks';
+
+<Meta title="Introduction/Getting Started" />
+
+# Getting Started
+
+Welcome to the Lambda Curry Medusa Forms library! This guide will help you get up and running with our controlled form components in your Medusa project.
+
+## Installation
+
+Install the package using your preferred package manager:
+
+```bash
+# npm
+npm install @lambdacurry/medusa-forms
+
+# yarn
+yarn add @lambdacurry/medusa-forms
+
+# pnpm
+pnpm add @lambdacurry/medusa-forms
+```
+
+## Peer Dependencies
+
+Make sure you have the required peer dependencies installed:
+
+```bash
+npm install react react-hook-form @medusajs/ui
+```
+
+## Basic Setup
+
+### 1. Import Components
+
+Import the components you need in your React component:
+
+```tsx
+import { ControlledInput, ControlledSelect } from '@lambdacurry/medusa-forms';
+import { useForm } from 'react-hook-form';
+```
+
+### 2. Set Up React Hook Form
+
+Create a form using React Hook Form:
+
+```tsx
+import { useForm } from 'react-hook-form';
+
+interface FormData {
+  name: string;
+  email: string;
+  category: string;
+}
+
+function MyForm() {
+  const form = useForm<FormData>({
+    defaultValues: {
+      name: '',
+      email: '',
+      category: '',
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    console.log('Form data:', data);
+  };
+
+  return (
+    <form onSubmit={form.handleSubmit(onSubmit)}>
+      {/* Form components go here */}
+    </form>
+  );
+}
+```
+
+### 3. Add Controlled Components
+
+Use our controlled components with React Hook Form:
+
+```tsx
+<ControlledInput
+  control={form.control}
+  name="name"
+  label="Full Name"
+  placeholder="Enter your full name"
+  required
+/>
+
+<ControlledInput
+  control={form.control}
+  name="email"
+  label="Email Address"
+  type="email"
+  placeholder="Enter your email"
+  required
+/>
+
+<ControlledSelect
+  control={form.control}
+  name="category"
+  label="Category"
+  placeholder="Select a category"
+  options={[
+    { value: 'electronics', label: 'Electronics' },
+    { value: 'clothing', label: 'Clothing' },
+    { value: 'books', label: 'Books' },
+  ]}
+  required
+/>
+```
+
+## Complete Example
+
+Here's a complete working example:
+
+```tsx
+import React from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@medusajs/ui';
+import { 
+  ControlledInput, 
+  ControlledSelect, 
+  ControlledTextArea 
+} from '@lambdacurry/medusa-forms';
+
+// Define validation schema
+const schema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email'),
+  category: z.string().min(1, 'Please select a category'),
+  description: z.string().optional(),
+});
+
+type FormData = z.infer<typeof schema>;
+
+export function ContactForm() {
+  const form = useForm<FormData>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: '',
+      email: '',
+      category: '',
+      description: '',
+    },
+  });
+
+  const onSubmit = (data: FormData) => {
+    console.log('Form submitted:', data);
+    // Handle form submission
+  };
+
+  return (
+    <div className="max-w-md mx-auto p-6">
+      <h2 className="text-2xl font-bold mb-6">Contact Form</h2>
+      
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <ControlledInput
+          control={form.control}
+          name="name"
+          label="Full Name"
+          placeholder="Enter your full name"
+          required
+        />
+
+        <ControlledInput
+          control={form.control}
+          name="email"
+          label="Email Address"
+          type="email"
+          placeholder="Enter your email"
+          required
+        />
+
+        <ControlledSelect
+          control={form.control}
+          name="category"
+          label="Category"
+          placeholder="Select a category"
+          options={[
+            { value: 'support', label: 'Support' },
+            { value: 'sales', label: 'Sales' },
+            { value: 'feedback', label: 'Feedback' },
+          ]}
+          required
+        />
+
+        <ControlledTextArea
+          control={form.control}
+          name="description"
+          label="Description"
+          placeholder="Tell us more about your inquiry..."
+          rows={4}
+        />
+
+        <Button 
+          type="submit" 
+          className="w-full"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? 'Submitting...' : 'Submit'}
+        </Button>
+      </form>
+    </div>
+  );
+}
+```
+
+## Key Features
+
+### 🎯 **Controlled Components**
+All components are fully controlled and integrate seamlessly with React Hook Form's `control` prop.
+
+### 🔧 **TypeScript Support**
+Full TypeScript support with proper type inference and validation.
+
+### ✅ **Validation Ready**
+Works perfectly with validation libraries like Zod, Yup, and built-in HTML validation.
+
+### 🎨 **Medusa UI Styling**
+Built on top of Medusa UI components for consistent styling across your admin interface.
+
+### ♿ **Accessibility**
+WCAG compliant with proper ARIA attributes and keyboard navigation support.
+
+## Next Steps
+
+- Explore the [Component Documentation](/?path=/docs/components-form-controls--docs) to see all available components
+- Check out [Integration Examples](/?path=/docs/examples--docs) for real-world usage patterns
+- Browse individual component stories to see props and customization options
+
+## Need Help?
+
+- 📖 [Component API Documentation](/?path=/docs/components-form-controls--docs)
+- 🌐 [Lambda Curry Website](https://lambdacurry.com)
+- 📧 Contact our team for support
+
+---
+
+<div style={{
+  background: 'linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%)',
+  color: 'white',
+  padding: '1.5rem',
+  borderRadius: '8px',
+  marginTop: '2rem'
+}}>
+  <h3 style={{ 
+    margin: '0 0 1rem 0',
+    fontSize: '1.25rem',
+    fontWeight: '600'
+  }}>
+    🚀 Ready to Build?
+  </h3>
+  <p style={{ 
+    margin: '0',
+    lineHeight: '1.6',
+    opacity: '0.9'
+  }}>
+    You're all set! Start exploring the components and building amazing forms for your Medusa application.
+  </p>
+</div>
+
