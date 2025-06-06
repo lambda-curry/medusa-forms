@@ -1,5 +1,5 @@
-import { addons } from '@storybook/manager-api';
-import { create } from '@storybook/theming/create';
+import { addons } from 'storybook/internal/manager-api';
+import { create } from 'storybook/internal/theming';
 import lambdaCurryLogo from '../src/assets/lambda-curry-logo.png';
 import './storybook-theme.css';
 
