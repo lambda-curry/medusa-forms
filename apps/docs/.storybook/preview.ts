@@ -18,7 +18,7 @@ const preview: Preview = {
           'Components',
           ['Form Controls', '*'],
           'Examples',
-          '*'
+          '*',
         ],
       },
     },

@@ -2,15 +2,15 @@
 
 /* Custom CSS variables for Lambda Curry branding */
 :root {
-  --lambda-curry-orange: #FF6B35;
-  --lambda-curry-orange-light: #FF8A5B;
-  --lambda-curry-orange-dark: #E55A2B;
-  --lambda-curry-gray: #2D3748;
-  --lambda-curry-gray-light: #4A5568;
+  --lambda-curry-orange: #ff6b35;
+  --lambda-curry-orange-light: #ff8a5b;
+  --lambda-curry-orange-dark: #e55a2b;
+  --lambda-curry-gray: #2d3748;
+  --lambda-curry-gray-light: #4a5568;
   --lambda-curry-gray-lighter: #718096;
-  --lambda-curry-background: #FFFFFF;
-  --lambda-curry-surface: #F7FAFC;
-  --lambda-curry-border: #E2E8F0;
+  --lambda-curry-background: #ffffff;
+  --lambda-curry-surface: #f7fafc;
+  --lambda-curry-border: #e2e8f0;
 }
 
 /* Storybook Manager UI Customizations */
@@ -98,7 +98,7 @@
 .control-input {
   border: 1px solid var(--lambda-curry-border) !important;
   border-radius: 6px !important;
-  font-family: 'Inter', sans-serif !important;
+  font-family: "Inter", sans-serif !important;
 }
 
 .control-input:focus {
@@ -141,7 +141,7 @@
 .docs-story h2,
 .docs-story h3 {
   color: var(--lambda-curry-gray) !important;
-  font-family: 'Inter', sans-serif !important;
+  font-family: "Inter", sans-serif !important;
 }
 
 .docs-story h1 {
@@ -201,12 +201,11 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   :root {
-    --lambda-curry-background: #1A202C;
-    --lambda-curry-surface: #2D3748;
-    --lambda-curry-border: #4A5568;
-    --lambda-curry-gray: #E2E8F0;
-    --lambda-curry-gray-light: #CBD5E0;
-    --lambda-curry-gray-lighter: #A0AEC0;
+    --lambda-curry-background: #1a202c;
+    --lambda-curry-surface: #2d3748;
+    --lambda-curry-border: #4a5568;
+    --lambda-curry-gray: #e2e8f0;
+    --lambda-curry-gray-light: #cbd5e0;
+    --lambda-curry-gray-lighter: #a0aec0;
   }
 }
-

@@ -5,7 +5,7 @@ import './storybook-theme.css';
 
 const theme = create({
   base: 'light',
-  
+
   // Brand
   brandTitle: 'Lambda Curry | Medusa Forms',
   brandUrl: 'https://lambdacurry.com',
