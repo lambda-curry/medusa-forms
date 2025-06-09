@@ -5,7 +5,7 @@ const path = require('node:path');
 const server = http.createServer((req, res) => {
   // Add CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   let filePath = path.join(__dirname, 'storybook-static', req.url === '/' ? 'index.html' : req.url);
@@ -30,16 +30,18 @@ const server = http.createServer((req, res) => {
 
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      res.writeHead(404);
-      res.end('Not found');
+      console.error('Error reading file:', filePath, err);
+      res.writeHead(500);
+      res.end('Server Error');
       return;
     }
+
     res.writeHead(200, { 'Content-Type': contentType });
-    res.end(content);
+    res.end(content, 'utf-8');
   });
 });
 
 const PORT = 45678;
 server.listen(PORT, () => {
-  // Server started successfully
+  console.log(`Server running on http://127.0.0.1:${PORT}`);
 });
