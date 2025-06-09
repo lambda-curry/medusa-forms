@@ -51,7 +51,7 @@ yarn install
 Step 2: Start Storybook
 
 ```bash
-yarn storybook
+yarn dev
 ```
 
 ## 🔧 Development
