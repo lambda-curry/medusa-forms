@@ -1,0 +1,22 @@
+{
+  "name": "field-wrapper",
+  "type": "registry:ui",
+  "description": "Core wrapper component with error handling and labels",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-error",
+    "label"
+  ],
+  "files": [
+    {
+      "name": "fieldwrapper.tsx",
+      "path": "src/ui/FieldWrapper.tsx"
+    },
+    {
+      "name": "types.d.ts",
+      "path": "src/ui/types.d.ts"
+    }
+  ]
+}

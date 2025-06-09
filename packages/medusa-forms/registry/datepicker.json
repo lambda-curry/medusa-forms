@@ -1,0 +1,17 @@
+{
+  "name": "datepicker",
+  "type": "registry:ui",
+  "description": "Base datepicker component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper"
+  ],
+  "files": [
+    {
+      "name": "datepicker.tsx",
+      "path": "src/ui/DatePicker.tsx"
+    }
+  ]
+}

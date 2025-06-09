@@ -1,0 +1,17 @@
+{
+  "name": "select",
+  "type": "registry:ui",
+  "description": "Base select component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper"
+  ],
+  "files": [
+    {
+      "name": "select.tsx",
+      "path": "src/ui/Select.tsx"
+    }
+  ]
+}

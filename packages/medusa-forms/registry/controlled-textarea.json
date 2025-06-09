@@ -1,0 +1,17 @@
+{
+  "name": "controlled-textarea",
+  "type": "registry:ui",
+  "description": "Textarea component with react-hook-form integration",
+  "dependencies": [
+    "react-hook-form"
+  ],
+  "registryDependencies": [
+    "textarea"
+  ],
+  "files": [
+    {
+      "name": "controlled-textarea.tsx",
+      "path": "src/controlled/ControlledTextArea.tsx"
+    }
+  ]
+}
