@@ -1,8 +1,8 @@
-# Lambda Curry Medusa Forms
-
 <div align="center">
   
 ![Lambda Curry Logo](https://lambdacurry.dev/favicon.ico)
+
+# Welcome to Medusa Forms by Lambda Curry!
 
 **Digital products made easy**
 
