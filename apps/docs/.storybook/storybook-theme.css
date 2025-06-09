@@ -1,4 +1,4 @@
-/* Lambda Curry Storybook Theme Customizations */
+/* Lambda Curry Minimal Storybook Theme */
 
 /* Custom CSS variables for Lambda Curry branding */
 :root {
@@ -6,207 +6,33 @@
   --lambda-curry-orange-light: #FF8A5B;
   --lambda-curry-orange-dark: #E55A2B;
   --lambda-curry-gray: #2D3748;
-  --lambda-curry-gray-light: #4A5568;
-  --lambda-curry-gray-lighter: #718096;
-  --lambda-curry-background: #FFFFFF;
   --lambda-curry-surface: #F7FAFC;
-  --lambda-curry-border: #E2E8F0;
 }
 
-/* Storybook Manager UI Customizations */
-.sidebar-container {
-  background: var(--lambda-curry-background) !important;
-  border-right: 1px solid var(--lambda-curry-border) !important;
-}
-
-.sidebar-header {
-  border-bottom: 1px solid var(--lambda-curry-border) !important;
-}
-
-/* Brand logo styling */
+/* Minimal brand logo styling */
 .sidebar-header img {
   max-height: 40px !important;
   width: auto !important;
   object-fit: contain !important;
 }
 
-/* Navigation styling */
-.sidebar-item {
-  color: var(--lambda-curry-gray) !important;
-  font-weight: 500 !important;
-}
-
-.sidebar-item:hover {
-  background: var(--lambda-curry-surface) !important;
-  color: var(--lambda-curry-orange) !important;
-}
-
-.sidebar-item[data-selected="true"] {
-  background: var(--lambda-curry-orange) !important;
-  color: white !important;
-  font-weight: 600 !important;
-}
-
-/* Toolbar customizations */
-.toolbar {
-  background: var(--lambda-curry-background) !important;
-  border-bottom: 1px solid var(--lambda-curry-border) !important;
-}
-
-.toolbar button {
-  color: var(--lambda-curry-gray-lighter) !important;
-}
-
-.toolbar button:hover {
-  color: var(--lambda-curry-orange) !important;
-  background: var(--lambda-curry-surface) !important;
-}
-
-.toolbar button[aria-pressed="true"] {
-  color: var(--lambda-curry-orange) !important;
-  background: var(--lambda-curry-surface) !important;
-}
-
-/* Panel customizations */
-.panel {
-  background: var(--lambda-curry-background) !important;
-  border-top: 1px solid var(--lambda-curry-border) !important;
-}
-
-.panel-header {
-  background: var(--lambda-curry-surface) !important;
-  border-bottom: 1px solid var(--lambda-curry-border) !important;
-}
-
-/* Tab styling */
-.tabbutton {
-  color: var(--lambda-curry-gray-lighter) !important;
-  font-weight: 500 !important;
-}
-
-.tabbutton:hover {
-  color: var(--lambda-curry-orange) !important;
-}
-
-.tabbutton[data-active="true"] {
-  color: var(--lambda-curry-orange) !important;
-  border-bottom-color: var(--lambda-curry-orange) !important;
-  font-weight: 600 !important;
-}
-
-/* Form controls in addons panel */
-.control-input {
-  border: 1px solid var(--lambda-curry-border) !important;
-  border-radius: 6px !important;
-  font-family: 'Inter', sans-serif !important;
-}
-
-.control-input:focus {
-  border-color: var(--lambda-curry-orange) !important;
-  box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.1) !important;
-}
-
-/* Button styling */
-.button-primary {
-  background: var(--lambda-curry-orange) !important;
-  border-color: var(--lambda-curry-orange) !important;
-  color: white !important;
-  font-weight: 600 !important;
-}
-
-.button-primary:hover {
-  background: var(--lambda-curry-orange-dark) !important;
-  border-color: var(--lambda-curry-orange-dark) !important;
-}
-
-.button-secondary {
-  border-color: var(--lambda-curry-border) !important;
-  color: var(--lambda-curry-gray) !important;
-  font-weight: 500 !important;
-}
-
-.button-secondary:hover {
-  border-color: var(--lambda-curry-orange) !important;
-  color: var(--lambda-curry-orange) !important;
-}
-
-/* Documentation page styling */
-.docs-story {
-  border: 1px solid var(--lambda-curry-border) !important;
-  border-radius: 8px !important;
-  overflow: hidden !important;
-}
-
-.docs-story h1,
-.docs-story h2,
-.docs-story h3 {
-  color: var(--lambda-curry-gray) !important;
-  font-family: 'Inter', sans-serif !important;
-}
-
+/* Only style documentation content, not Storybook UI */
 .docs-story h1 {
   color: var(--lambda-curry-orange) !important;
-  font-weight: 700 !important;
 }
 
-/* Code block styling */
-.docs-story pre {
-  background: var(--lambda-curry-surface) !important;
-  border: 1px solid var(--lambda-curry-border) !important;
-  border-radius: 6px !important;
-}
-
-/* Link styling */
 .docs-story a {
   color: var(--lambda-curry-orange) !important;
-  text-decoration: none !important;
 }
 
 .docs-story a:hover {
   color: var(--lambda-curry-orange-dark) !important;
-  text-decoration: underline !important;
-}
-
-/* Canvas background */
-.canvas {
-  background: var(--lambda-curry-background) !important;
-}
-
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: var(--lambda-curry-surface);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--lambda-curry-border);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--lambda-curry-gray-lighter);
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .sidebar-header img {
     max-height: 32px !important;
-  }
-}
-
-/* Dark mode support */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --lambda-curry-background: #1A202C;
-    --lambda-curry-surface: #2D3748;
-    --lambda-curry-border: #4A5568;
-    --lambda-curry-gray: #E2E8F0;
-    --lambda-curry-gray-light: #CBD5E0;
-    --lambda-curry-gray-lighter: #A0AEC0;
   }
 }
 

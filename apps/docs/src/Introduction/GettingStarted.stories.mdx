@@ -2,11 +2,35 @@ import { Meta } from '@storybook/blocks';
 
 <Meta title="Introduction/Getting Started" />
 
-# Getting Started
+<div style={{
+  background: 'linear-gradient(135deg, #FF6B35 0%, #FF8A5B 100%)',
+  color: 'white',
+  padding: '2rem',
+  borderRadius: '8px',
+  marginBottom: '2rem',
+  textAlign: 'center'
+}}>
+  <h1 style={{ 
+    fontSize: '2rem', 
+    fontWeight: '600', 
+    margin: '0 0 0.5rem 0',
+    fontFamily: 'Inter, sans-serif'
+  }}>
+    Getting Started
+  </h1>
+  <p style={{ 
+    fontSize: '1.125rem', 
+    margin: '0',
+    opacity: '0.9',
+    maxWidth: '600px',
+    marginLeft: 'auto',
+    marginRight: 'auto'
+  }}>
+    Get up and running with Lambda Curry Medusa Forms in your project
+  </p>
+</div>
 
-Welcome to the Lambda Curry Medusa Forms library! This guide will help you get up and running with our controlled form components in your Medusa project.
-
-## Installation
+# Installation
 
 Install the package using your preferred package manager:
 
@@ -28,6 +52,31 @@ Make sure you have the required peer dependencies installed:
 ```bash
 npm install react react-hook-form @medusajs/ui
 ```
+
+<div style={{
+  background: '#F7FAFC',
+  padding: '1.5rem',
+  borderRadius: '8px',
+  border: '1px solid #E2E8F0',
+  margin: '2rem 0'
+}}>
+  <h3 style={{ 
+    color: '#FF6B35', 
+    margin: '0 0 1rem 0',
+    fontSize: '1.125rem',
+    fontWeight: '600'
+  }}>
+    💡 Quick Tip
+  </h3>
+  <p style={{ 
+    margin: '0',
+    color: '#4A5568',
+    lineHeight: '1.6'
+  }}>
+    All components are fully controlled and integrate seamlessly with React Hook Form's control prop. 
+    This ensures consistent state management and validation across your forms.
+  </p>
+</div>
 
 ## Basic Setup
 
@@ -222,7 +271,7 @@ Works perfectly with validation libraries like Zod, Yup, and built-in HTML valid
 ### 🎨 **Medusa UI Styling**
 Built on top of Medusa UI components for consistent styling across your admin interface.
 
-### ♿ **Accessibility**
+### ��� **Accessibility**
 WCAG compliant with proper ARIA attributes and keyboard navigation support.
 
 ## Next Steps
@@ -261,4 +310,3 @@ WCAG compliant with proper ARIA attributes and keyboard navigation support.
     You're all set! Start exploring the components and building amazing forms for your Medusa application.
   </p>
 </div>
-
