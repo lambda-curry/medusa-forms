@@ -1,17 +1,37 @@
-# Lambda Curry Medusa Forms
+<div align="center">
+  
+![Lambda Curry Logo](https://lambdacurry.dev/favicon.ico)
+
+# Welcome to Medusa Forms by Lambda Curry!
+
+**Digital products made easy**
+
+*Controlled form components for Medusa Admin and Medusa UI applications*
+
+[![Storybook](https://img.shields.io/badge/Storybook-FF4785?style=for-the-badge&logo=storybook&logoColor=white)](https://lambda-curry.github.io/medusa-forms/?path=/docs/0-1-hello-world-start-here--docs)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+
+---
+
+*Built with expertise by [Lambda Curry](https://lambdacurry.dev) - your trusted Medusa development partners*
+
+</div>
+
+## 🚀 About This Library
 
 A controlled form components library for Medusa Admin and Medusa UI applications.
 
 Checkout our [Storybook Documentation](https://lambda-curry.github.io/forms/?path=/docs/0-1-hello-world-start-here--docs) to see the components in action and get started.
 
-## Features
+## ✨ Features
 
 - **Controlled Components**: All form components are controlled and work seamlessly with react-hook-form
 - **Medusa UI Integration**: Built specifically for Medusa Admin and Medusa UI design system
 - **TypeScript Support**: Full TypeScript support with proper type definitions
 - **Storybook Documentation**: Comprehensive documentation and examples
 
-## Components
+## 📦 Components
 
 - `ControlledInput` - Text input with validation
 - `ControlledTextArea` - Multi-line text input
@@ -20,7 +40,7 @@ Checkout our [Storybook Documentation](https://lambda-curry.github.io/forms/?pat
 - `ControlledDatePicker` - Date selection
 - `ControlledCurrencyInput` - Currency input with formatting
 
-## Getting Started
+## 🏁 Getting Started
 
 Step 1: Install dependencies
 
@@ -31,10 +51,10 @@ yarn install
 Step 2: Start Storybook
 
 ```bash
-yarn storybook
+yarn dev
 ```
 
-## Development
+## 🔧 Development
 
 ### PR Previews
 
@@ -82,4 +102,16 @@ The PR preview is deployed to the `gh-pages` branch in a directory structure lik
 ```
 /pr-preview/pr-[PR_NUMBER]/
 ```
+
+---
+
+<div align="center">
+
+**Need help with your Medusa project?**
+
+Lambda Curry specializes in Medusa development and can help you build amazing e-commerce experiences.
+
+[Contact Lambda Curry](https://lambdacurry.dev/#contact-us) | [View Our Work](https://lambdacurry.dev)
+
+</div>
 
