@@ -2,7 +2,7 @@
 
 A controlled form components library for Medusa Admin and Medusa UI applications.
 
-Checkout our [Storybook Documentation](https://lambda-curry.github.io/medusa-forms/?path=/docs/0-1-hello-world-start-here--docs) to see the components in action and get started.
+Checkout our [Storybook Documentation](https://lambda-curry.github.io/forms/?path=/docs/0-1-hello-world-start-here--docs) to see the components in action and get started.
 
 ## Features
 
