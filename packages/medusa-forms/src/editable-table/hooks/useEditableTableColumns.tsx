@@ -40,7 +40,7 @@ export const useEditableTableColumns = <T extends Record<string, unknown>>({
     if (actionsColumn) allColumns.push(actionsColumn);
 
     return allColumns as ColumnDef<T>[];
-  }, [columnDefs, getCellActions, enableRowSelection, rowSelection, onRowSelectionChange]);
+  }, [columnDefs, getCellActions, enableRowSelection, rowSelection, onRowSelectionChange, onView, onDelete]);
 
   return columns;
 };
