@@ -592,15 +592,16 @@ const getValidateHandler = (key: string) => {
 
 ### Auto-save
 
+> **⚠️ IMPORTANT**: Validation is called automatically before save. Do NOT call validation manually inside your save handler.
+
 ```tsx
 const getSaveHandler = (key: string) => {
-  return async ({ value, data, meta }) => {
+  return async ({ value, data }) => {
     try {
-      // Validate before saving
-      const validationError = await validateField(key, value);
-      if (validationError) return validationError;
+      // ✅ Validation is handled automatically by EditableTable
+      // ❌ DO NOT call validateField() here - it's already done
       
-      // Check if value actually changed
+      // Check if value actually changed (optional optimization)
       if (value === data[key]) return null;
       
       // Perform the save operation
@@ -609,12 +610,19 @@ const getSaveHandler = (key: string) => {
       // Return null for success
       return null;
     } catch (error) {
-      // Return error message
+      // Return error message on failure
       return error.message || 'Save failed';
     }
   };
 };
 ```
+
+**Save Flow:**
+1. User edits cell value
+2. **Validation runs automatically** (debounced 300ms)
+3. If validation passes, **save handler is called**
+4. Save handler performs the save operation
+5. Visual indicator shows success or error state
 
 ### Save States and Visual Indicators
 
@@ -865,7 +873,28 @@ const getValidateHandler = (key: string) => {
 
 ### Best Practices
 
-1. **Use for read-only operations**: The table instance is for reading state, not mutating
+1. **Never call validation manually in save handler**: Validation is automatic
+   ```tsx
+   // ❌ Bad - Manual validation in save handler
+   const getSaveHandler = (key: string) => {
+     return async ({ value }) => {
+       const error = await validateField(key, value); // ❌ Don't do this
+       if (error) return error;
+       await save(value);
+     };
+   };
+   
+   // ✅ Good - Let EditableTable handle validation
+   const getSaveHandler = (key: string) => {
+     return async ({ value, data }) => {
+       // Validation already done - just save
+       await updateRecord(data.id, { [key]: value });
+       return null;
+     };
+   };
+   ```
+
+2. **Use for read-only operations**: The table instance is for reading state, not mutating
    ```tsx
    // ✅ Good - Read data
    const allCategories = table.getCoreRowModel().rows.map(r => r.original.category);
@@ -874,7 +903,7 @@ const getValidateHandler = (key: string) => {
    // table.setRowSelection({ ...});
    ```
 
-2. **Consider performance**: Accessing all rows can be expensive for large datasets
+3. **Consider performance**: Accessing all rows can be expensive for large datasets
    ```tsx
    // ✅ Good - Use filtered rows when possible
    const visibleRows = table.getFilteredRowModel().rows;
@@ -883,13 +912,13 @@ const getValidateHandler = (key: string) => {
    const allRows = table.getCoreRowModel().rows;
    ```
 
-3. **Type safety**: The table instance is properly typed
+4. **Type safety**: The table instance is properly typed
    ```tsx
    // TypeScript knows the exact row type
    const row: EditableInventoryItemData = table.getRowData(0);
    ```
 
-4. **Access is always available**: The table parameter is always provided to handlers
+5. **Access is always available**: The table parameter is always provided to handlers
    ```tsx
    // ✅ No need for optional chaining
    const totalRows = table.getRowCount();
@@ -978,6 +1007,78 @@ const columns = [
 
 The EditableTable is designed to prevent unnecessary re-renders that can cause cell state resets and poor user experience. Follow these patterns to ensure optimal performance:
 
+#### 0. **CRITICAL**: Never Depend on Data State in Handlers
+
+**This is the most common cause of re-render issues and broken status indicators.**
+
+Handler functions (`getValidateHandler`, `getSaveHandler`, `getOptionsHandler`) must NEVER depend on the `data` state variable. Instead, use the `table` instance parameter provided to the action functions.
+
+```tsx
+// ❌ INCORRECT - Causes re-renders on every data change
+const getValidateHandler = useCallback((key: string) => {
+  return async ({ value }) => {
+    // Using data state variable - BAD!
+    const exists = data.some(item => item.sku === value);
+    return exists ? 'Duplicate SKU' : null;
+  };
+}, [data]); // ❌ data dependency causes handler to recreate
+
+// ✅ CORRECT - Use table instance instead
+const getValidateHandler = useCallback(
+  (key: string): EditableCellActionFn<MyData, string | null> => {
+    return async ({ value, table }) => {
+      // Use table instance - GOOD!
+      const allRows = table.getCoreRowModel().rows;
+      const exists = allRows.some(row => row.original.sku === value);
+      return exists ? 'Duplicate SKU' : null;
+    };
+  },
+  [] // ✅ No dependencies - stable reference
+);
+```
+
+**Why This Matters:**
+- When handlers depend on `data`, they recreate every time `data` changes
+- Handler recreation causes the entire table to re-render
+- Re-renders reset cell states, breaking status indicators (saving, error states)
+- Users see flickering and inconsistent behavior
+
+**Type Safety:**
+Always type your handlers for better TypeScript support:
+
+```tsx
+// Type the handler function return value
+const getValidateHandler = useCallback(
+  (key: string): EditableCellActionFn<MyDataType, string | null> => {
+    return async ({ value, data, table }) => {
+      // Handler implementation
+      // TypeScript will infer correct types for value, data, table
+    };
+  },
+  [] // Empty dependencies
+);
+
+const getSaveHandler = useCallback(
+  (key: string): EditableCellActionFn<MyDataType, string | null> => {
+    return async ({ value, data }) => {
+      // Save implementation
+    };
+  },
+  [] // Empty dependencies unless you need external stable references
+);
+
+const getOptionsHandler = useCallback(
+  (key: string): EditableCellActionFn<MyDataType, { label: string; value: unknown }[]> => {
+    return async ({ value, table }) => {
+      // Get options from table instance, not state
+      const allRows = table.getCoreRowModel().rows;
+      // ... generate options
+    };
+  },
+  []
+);
+```
+
 #### 1. Memoize Column Definitions in Custom Hooks
 
 ```tsx
@@ -1045,10 +1146,13 @@ const columns = useInventoryItemColumnsDefinition(stockLocations);
 
 ### Common Pitfalls to Avoid
 
-1. **Unstable Column References**: Always memoize column definitions inside custom hooks
-2. **New Function References**: Use `useCallback` for handler functions
-3. **Object Recreation**: Memoize complex objects passed as props
-4. **Hook Violations**: Never call hooks inside `useMemo`, `useCallback`, or other hooks
+1. **⚠️  CRITICAL: Data Dependencies in Handlers**: NEVER depend on `data` state in handlers - use `table` instance instead
+2. **⚠️  CRITICAL: Manual Validation in Save Handler**: NEVER call validation manually in save handler - it's automatic
+3. **Unstable Column References**: Always memoize column definitions inside custom hooks
+4. **New Function References**: Use `useCallback` for handler functions
+5. **Object Recreation**: Memoize complex objects passed as props
+6. **Hook Violations**: Never call hooks inside `useMemo`, `useCallback`, or other hooks
+7. **Missing Type Annotations**: Type your handlers with `EditableCellActionFn<T, ReturnType>` for better TypeScript support
 
 ## Component Props
 
@@ -1692,19 +1796,25 @@ export const MyTable = () => {
 
 Before deploying your table, verify these performance requirements:
 
+- [ ] **⚠️  CRITICAL: Handlers do NOT depend on `data` state** - use `table` instance instead
+- [ ] **⚠️  CRITICAL: Save handler does NOT call validation** - validation is automatic
+- [ ] **Handlers are typed** with `EditableCellActionFn<T, ReturnType>`
 - [ ] **Column definitions are memoized** inside the custom hook
-- [ ] **Handler functions use `useCallback`** with proper dependencies
+- [ ] **Handler functions use `useCallback`** with empty dependencies `[]`
 - [ ] **No hooks are called inside other hooks** (Rules of Hooks)
 - [ ] **Complex objects are memoized** with `useMemo`
 - [ ] **Data transformations are memoized** to prevent unnecessary recalculations
 - [ ] **Action handlers are stable** and don't recreate on every render
+- [ ] **Status indicators work correctly** - test editing, saving, and error states
 
 ### Common Issues and Solutions
 
 | Issue | Symptom | Solution |
 |-------|---------|----------|
-| Status indicators not showing | Cells reset state during saves | Memoize column definitions in custom hook |
-| Performance issues | Excessive re-renders | Use `useCallback` for all handler functions |
+| Status indicators not showing | Cells reset state during saves | Remove `data` dependency from handlers - use `table` instance |
+| Flickering during edits | Indicators appear/disappear rapidly | Handlers depend on `data` - use `table` instance instead |
+| Performance issues | Excessive re-renders | Use `useCallback` with empty deps `[]` for handlers |
+| Column state resets | Loses focus/state when typing | Memoize column definitions in custom hook |
 | Hook violations | React errors in console | Never call hooks inside `useMemo`/`useCallback` |
 | Unstable references | Table re-renders unnecessarily | Memoize all complex objects and arrays |
 
@@ -1798,13 +1908,16 @@ The EditableTable component represents a sophisticated solution for inline data 
 The InventoryTable implementation demonstrates how these patterns can be applied to real-world scenarios, providing a template for future table implementations throughout the Medusa2 admin interface.
 
 **Key Takeaways:**
+- **⚠️  CRITICAL: Never depend on `data` state in handlers** - use `table` instance to avoid re-renders
+- **⚠️  CRITICAL: Never call validation manually in save handler** - it's automatic
+- **Type all handlers** with `EditableCellActionFn<T, ReturnType>` for type safety
 - Use schema-driven validation for consistency and type safety
 - Implement proper error handling and user feedback
 - Leverage URL state for better user experience
 - Design for performance from the start
 - Maintain clear separation between data, validation, and save logic
 - **Always memoize column definitions inside custom hooks** to prevent re-render issues
-- **Use `useCallback` for all handler functions** to ensure stable references
+- **Use `useCallback` for all handler functions** with empty dependencies `[]`
 - **Never call hooks inside other hooks** to avoid React violations
 - **Test status indicators** to verify cells maintain state during saves
 
