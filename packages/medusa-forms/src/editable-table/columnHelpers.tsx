@@ -1,0 +1,58 @@
+import type { ColumnDef } from '@tanstack/react-table';
+import type { EditableTableCellMeta } from './types/cells';
+import type { EditableColumnType } from './types/columns';
+
+// Utility to generate column sizing based on field types
+export function getDefaultColumnSizing(type: string): number {
+  const sizeMap: Record<string, number> = {
+    avatar: 80,
+    boolean: 80,
+    number: 80,
+    date: 120,
+    phone: 140,
+    image: 80,
+  };
+
+  return sizeMap[type] || 180;
+}
+
+export const canSortColumn = (type: EditableColumnType) => ['text', 'number'].includes(type);
+
+// Get filter function based on field type
+export function getFilterFunction(type: string) {
+  switch (type) {
+    case 'boolean':
+      return 'equals';
+    case 'number':
+      return 'includesString'; // Use includesString for now, can be customized later
+    case 'date':
+      return 'includesString'; // Use includesString for now, can be customized later
+    default:
+      return 'includesString';
+  }
+}
+
+// Get sorting function based on field type
+export function getSortingFunction(type: string) {
+  switch (type) {
+    case 'number':
+      return 'basic';
+    case 'date':
+      return 'datetime';
+    case 'boolean':
+      return 'basic';
+    default:
+      return 'alphanumeric';
+  }
+}
+
+// Helper to get column class names based on type
+export function getColumnHeaderClassName(colDef: ColumnDef<Record<string, unknown>>): string {
+  const baseClasses = 'flex items-center gap-2 text-left justify-between';
+
+  const meta = colDef.meta as EditableTableCellMeta;
+  switch (meta?.type) {
+    default:
+      return `${baseClasses}`;
+  }
+}

@@ -1,11 +1,36 @@
 {
   "name": "@lambdacurry/medusa-forms",
-  "version": "0.2.8",
+  "version": "0.2.9",
+  "description": "Comprehensive form and data management component library for Medusa Admin with controlled form components and EditableTable",
+  "keywords": [
+    "medusa",
+    "medusa-ui",
+    "react",
+    "forms",
+    "react-hook-form",
+    "table",
+    "editable-table",
+    "inline-editing",
+    "typescript"
+  ],
+  "homepage": "https://lambda-curry.github.io/forms",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lambda-curry/forms.git",
+    "directory": "packages/medusa-forms"
+  },
+  "bugs": {
+    "url": "https://github.com/lambda-curry/forms/issues"
+  },
+  "license": "MIT",
+  "author": "Lambda Curry",
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
   "types": "./dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "src/editable-table/README.md"
   ],
   "exports": {
     ".": {
@@ -37,6 +62,16 @@
         "types": "./dist/types/ui/index.d.ts",
         "default": "./dist/cjs/ui/index.cjs"
       }
+    },
+    "./editable-table": {
+      "import": {
+        "types": "./dist/types/editable-table/index.d.ts",
+        "default": "./dist/esm/editable-table/index.js"
+      },
+      "require": {
+        "types": "./dist/types/editable-table/index.d.ts",
+        "default": "./dist/cjs/editable-table/index.cjs"
+      }
     }
   },
   "scripts": {
@@ -47,15 +82,25 @@
     "type-check": "tsc --noEmit"
   },
   "peerDependencies": {
+    "@medusajs/icons": "^2.0.0",
     "@medusajs/ui": "^4.0.0",
+    "@tanstack/react-query": "^5.0.0",
+    "@tanstack/react-table": "^8.21.0",
+    "lucide-react": "^0.263.0",
+    "nuqs": "^2.6.0",
     "react": "^18.3.0 || ^19.0.0",
-    "react-hook-form": "^7.49.0"
+    "react-hook-form": "^7.49.0",
+    "use-debounce": "^10.0.0"
   },
   "dependencies": {
     "@hookform/error-message": "^2.0.1"
   },
   "devDependencies": {
+    "@medusajs/icons": "^2.0.0",
     "@medusajs/ui": "^4.0.0",
+    "@tanstack/react-query": "^5.62.15",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.10.8",
     "@types/glob": "^8.1.0",
     "@types/react": "^19.0.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
@@ -63,10 +108,13 @@
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
     "glob": "^11.0.0",
+    "lucide-react": "^0.469.0",
+    "nuqs": "^2.6.0",
     "react": "^19.0.0",
     "react-hook-form": "^7.49.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2",
+    "use-debounce": "^10.0.4",
     "vite": "^5.4.11",
     "vite-plugin-dts": "^4.4.0",
     "vite-tsconfig-paths": "^5.1.4"

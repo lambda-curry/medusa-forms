@@ -6,19 +6,25 @@ Checkout our [Storybook Documentation](https://lambda-curry.github.io/forms/?pat
 
 ## Features
 
-- **Controlled Components**: All form components are controlled and work seamlessly with react-hook-form
+- **Controlled Form Components**: All form components are controlled and work seamlessly with react-hook-form
+- **EditableTable Component**: Advanced inline-editing table with validation, auto-save, and URL state persistence
 - **Medusa UI Integration**: Built specifically for Medusa Admin and Medusa UI design system
 - **TypeScript Support**: Full TypeScript support with proper type definitions
-- **Storybook Documentation**: Comprehensive documentation and examples
+- **Modular Architecture**: Import only what you need with tree-shakeable exports
+- **Storybook Documentation**: Comprehensive documentation and interactive examples
 
 ## Components
 
+### Controlled Form Components
 - `ControlledInput` - Text input with validation
 - `ControlledTextArea` - Multi-line text input
 - `ControlledSelect` - Dropdown selection
 - `ControlledCheckbox` - Checkbox input
 - `ControlledDatePicker` - Date selection
 - `ControlledCurrencyInput` - Currency input with formatting
+
+### Data Table Components
+- `EditableTable` - Powerful inline-editing table with real-time validation, auto-save, URL state persistence, sorting, filtering, and more. See [EditableTable Documentation](./packages/medusa-forms/src/editable-table/README.md) for details.
 
 ## Getting Started
 
