@@ -16,12 +16,21 @@ export const useEditableCellActions = ({
   return useCallback(
     ({ meta, data, table }): EditableCellActions => {
       const validateHandler = getValidateHandler?.(meta.key) || (() => null);
-      const saverHandler =
-        getSaveHandler?.(meta.key) ||
-        (async () => {
+      const saverHandler: EditableCellActionFn<Record<string, unknown>, string | null> = async (args) => {
+        const saveHandler = getSaveHandler?.(meta.key);
+        const validationError = validateHandler ? await validateHandler(args) : null;
+
+        if (validationError) {
+          return validationError;
+        }
+
+        if (!saveHandler) {
           // Consistent error surface; do not throw in UI flow
-          return 'No save handler available for this field';
-        });
+          return `No save handler available for ${meta.name}`;
+        }
+
+        return saveHandler(args);
+      };
       const optionsHandler =
         getOptionsHandler?.(meta.key) || (async (): Promise<{ label: string; value: unknown }[]> => []);
 
