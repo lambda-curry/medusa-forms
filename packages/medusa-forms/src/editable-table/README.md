@@ -318,6 +318,19 @@ const getSaveHandler = (key: string) => {
   };
 };
 
+// Options handlers (for autocomplete columns)
+const getOptionsHandler = (key: string) => {
+  return async ({ value }) => {
+    // Return options for autocomplete fields
+    if (key === 'category') {
+      const searchTerm = String(value || '').toLowerCase();
+      const categories = await fetchCategories(searchTerm);
+      return categories.map(cat => ({ label: cat.name, value: cat.id }));
+    }
+    return [];
+  };
+};
+
 // Component usage
 export const MyEditableTable = () => {
   const [data, setData] = useState<MyData[]>([]);
@@ -329,6 +342,7 @@ export const MyEditableTable = () => {
       editableColumns={columns}
       getValidateHandler={getValidateHandler}
       getSaveHandler={getSaveHandler}
+      getOptionsHandler={getOptionsHandler}
       loading={loading}
       showControls={true}
       showPagination={true}
@@ -382,15 +396,50 @@ export const MyEditableTable = () => {
 }
 ```
 
-### Select Column (Future Enhancement)
+### Autocomplete Column
 ```tsx
 {
   name: 'Category',
   key: 'category',
+  type: 'autocomplete',
+  placeholder: 'Search categories...',
+  required: false,
+}
+```
+
+**Features:**
+- Debounced search as user types
+- Async option loading via `getOptionsHandler`
+- Dropdown with filtered suggestions
+- Keyboard navigation support
+- Can show additional metadata in tooltips (e.g., "used by X items")
+
+**Options Handler Example:**
+```tsx
+const getOptionsHandler = (key: string) => {
+  return async ({ value }) => {
+    if (key === 'category') {
+      const searchTerm = String(value || '').toLowerCase();
+      const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports'];
+      
+      return categories
+        .filter((cat) => cat.toLowerCase().includes(searchTerm))
+        .map((cat) => ({ label: cat, value: cat }));
+    }
+    return [];
+  };
+};
+```
+
+### Select Column (Future Enhancement)
+```tsx
+{
+  name: 'Status',
+  key: 'status',
   type: 'select',
   options: [
-    { value: 'electronics', label: 'Electronics' },
-    { value: 'clothing', label: 'Clothing' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
   ],
 }
 ```
@@ -576,6 +625,94 @@ const getSaveHandler = (key: string) => {
 - **Error**: Red border/background with error message
 - **Retry**: Option to retry failed saves
 
+## Options System
+
+The `getOptionsHandler` provides autocomplete suggestions for cells of type `autocomplete`. It's called when users type in autocomplete fields.
+
+### Basic Options Handler
+
+```tsx
+const getOptionsHandler = (key: string) => {
+  return async ({ value }) => {
+    const searchTerm = String(value || '').toLowerCase();
+    
+    if (key === 'category') {
+      // Fetch or filter options based on search term
+      const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports'];
+      
+      return categories
+        .filter(cat => cat.toLowerCase().includes(searchTerm))
+        .map(cat => ({ label: cat, value: cat }));
+    }
+    
+    return []; // Return empty array for non-autocomplete fields
+  };
+};
+```
+
+### API-based Options
+
+```tsx
+const getOptionsHandler = (key: string) => {
+  return async ({ value }) => {
+    const searchTerm = String(value || '').toLowerCase();
+    
+    if (key === 'supplier') {
+      // Fetch from API
+      const response = await fetch(`/api/suppliers?search=${searchTerm}`);
+      const suppliers = await response.json();
+      
+      return suppliers.map(s => ({ 
+        label: s.name, 
+        value: s.id 
+      }));
+    }
+    
+    return [];
+  };
+};
+```
+
+### Options with Metadata
+
+You can include additional metadata in options for enhanced tooltips:
+
+```tsx
+const getOptionsHandler = (key: string) => {
+  return async ({ value }) => {
+    if (key === 'location') {
+      const locations = await fetchLocations(value);
+      
+      return locations.map(loc => ({
+        label: loc.name,
+        value: loc.id,
+        // Additional metadata for tooltips
+        usedBy: loc.inventoryItems?.map(item => ({
+          id: item.id,
+          name: item.name
+        }))
+      }));
+    }
+    return [];
+  };
+};
+```
+
+### Options Format
+
+Options must follow this structure:
+
+```tsx
+type Option = {
+  label: string;           // Display text in dropdown
+  value: unknown;          // Value to save when selected
+  usedBy?: Array<{        // Optional: for tooltip metadata
+    id: string;
+    name: string;
+  }>;
+};
+```
+
 ## Accessing Table Instance in Handlers
 
 All handler functions (`getValidateHandler`, `getSaveHandler`, and `getOptionsHandler`) receive the table instance as a parameter. This allows you to access table state and data for advanced use cases.
@@ -639,6 +776,8 @@ const getValidateHandler = (key: string) => {
 const getOptionsHandler = (key: string) => {
   return async ({ value, data, table }) => {
     if (key === 'category') {
+      const searchTerm = String(value || '').toLowerCase();
+      
       // Get all unique categories from filtered rows
       const filteredRows = table.getFilteredRowModel().rows;
       const uniqueCategories = new Set<string>();
@@ -650,7 +789,11 @@ const getOptionsHandler = (key: string) => {
         }
       }
       
-      return Array.from(uniqueCategories).sort();
+      // Convert to option format and filter by search term
+      return Array.from(uniqueCategories)
+        .filter(cat => cat.toLowerCase().includes(searchTerm))
+        .sort()
+        .map(cat => ({ label: cat, value: cat }));
     }
     return [];
   };
@@ -918,6 +1061,7 @@ interface EditableTableProps<T extends Record<string, unknown>> {
   editableColumns: EditableTableColumnDefinition<T>[];
   getValidateHandler: (key: string) => EditableCellActionFn<Record<string, unknown>, string | null> | undefined;
   getSaveHandler: (key: string) => EditableCellActionFn<Record<string, unknown>, string | null> | undefined;
+  getOptionsHandler: (key: string) => EditableCellActionFn<Record<string, unknown>, { label: string; value: unknown }[]> | undefined;
   
   // Optional configuration
   tableId?: string;                    // For URL state persistence
@@ -1451,7 +1595,38 @@ export const useMyTableSaveHandlers = () => {
 };
 ```
 
-### Step 5: Create the Main Table Component
+### Step 5: Create Options Handlers (for autocomplete columns)
+
+```tsx
+// useMyTableOptionsHandlers.ts
+import { useCallback } from 'react';
+
+export const useMyTableOptionsHandlers = () => {
+  return useCallback((key: string) => {
+    return async ({ value }) => {
+      const searchTerm = String(value || '').toLowerCase();
+      
+      // Return options for autocomplete fields
+      if (key === 'category') {
+        const categories = await fetchCategories(searchTerm);
+        return categories
+          .filter(cat => cat.name.toLowerCase().includes(searchTerm))
+          .map(cat => ({ label: cat.name, value: cat.id }));
+      }
+      
+      if (key === 'supplier') {
+        const suppliers = await fetchSuppliers(searchTerm);
+        return suppliers.map(s => ({ label: s.name, value: s.id }));
+      }
+      
+      // Return empty array for non-autocomplete fields
+      return [];
+    };
+  }, []); // ✅ CRITICAL: Empty dependency array for stable reference
+};
+```
+
+### Step 6: Create the Main Table Component
 
 ```tsx
 // MyTable.tsx
@@ -1460,6 +1635,7 @@ import { EditableTable } from '../EditableTable/components/EditableTable';
 import { useMyTableColumnsDefinition } from './useMyTableColumnsDefinition';
 import { useMyTableValidateHandlers } from './useMyTableValidateHandlers';
 import { useMyTableSaveHandlers } from './useMyTableSaveHandlers';
+import { useMyTableOptionsHandlers } from './useMyTableOptionsHandlers';
 
 export const MyTable = () => {
   // Data fetching
@@ -1477,6 +1653,7 @@ export const MyTable = () => {
   // Handlers (stable references)
   const getValidateHandler = useMyTableValidateHandlers();
   const getSaveHandler = useMyTableSaveHandlers();
+  const getOptionsHandler = useMyTableOptionsHandlers();
   
   // Action handlers
   const handleView = useCallback((item: MyTableData) => {
@@ -1500,6 +1677,7 @@ export const MyTable = () => {
       loading={isLoading}
       getValidateHandler={getValidateHandler}
       getSaveHandler={getSaveHandler}
+      getOptionsHandler={getOptionsHandler}
       enableRowSelection={true}
       rowSelection={rowSelection}
       onRowSelectionChange={handleRowSelectionChange}
@@ -1510,7 +1688,7 @@ export const MyTable = () => {
 };
 ```
 
-### Step 6: Performance Checklist
+### Step 7: Performance Checklist
 
 Before deploying your table, verify these performance requirements:
 
