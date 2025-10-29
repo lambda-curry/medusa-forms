@@ -23,7 +23,6 @@ interface EditableTableProps<T extends Record<string, unknown>> extends Omit<Edi
 
 // Main EditableTable component
 export function EditableTable<T extends Record<string, unknown>>({
-  tableId,
   showControls = true,
   showPagination = true,
   showInfo = true,
@@ -38,14 +37,11 @@ export function EditableTable<T extends Record<string, unknown>>({
 }: EditableTableProps<T>) {
   const getCellActionsFn = useEditableCellActions({ getValidateHandler, getSaveHandler, getOptionsHandler });
 
-  const { table } = useEditableTable(
-    {
-      ...inputConfig,
-      data,
-      getCellActions: getCellActionsFn,
-    },
-    tableId,
-  );
+  const { table } = useEditableTable({
+    ...inputConfig,
+    data,
+    getCellActions: getCellActionsFn,
+  });
 
   // Show skeleton if loading
   if (loading) {
