@@ -1,5 +1,6 @@
 import { ArrowPath, Check, ExclamationCircle, LockClosedSolid, PencilSquare } from '@medusajs/icons';
 import { Tooltip, clx } from '@medusajs/ui';
+import type { ReactNode } from 'react';
 import type { CellStatus } from '../../types/cells';
 
 export const CellStatusIndicator = ({
@@ -11,7 +12,7 @@ export const CellStatusIndicator = ({
   error: string | null;
   className?: string;
 }) => {
-  let icon: React.ReactNode | null = null;
+  let icon: ReactNode | null = null;
   let tooltip: string | undefined;
 
   switch (status) {

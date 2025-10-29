@@ -23,7 +23,7 @@ export type BadgeCellValue = {
 };
 
 // Badge cell component for arrays or multiple values
-const BadgeCell = ({ meta, value }: CellContentProps<BadgeCellValue | undefined>) => {
+const BadgeCell = ({ value }: CellContentProps<BadgeCellValue | undefined>) => {
   if (!value?.status) {
     return <PlaceholderCell />;
   }

@@ -1,5 +1,5 @@
 import { clx } from '@medusajs/ui';
-import { useCallback } from 'react';
+import { type ChangeEvent, type ReactNode, type RefObject, useCallback } from 'react';
 import type { CellContentProps } from '../../../types/cells';
 import { getCellStatusClassName, getStatusIndicator } from '../../../utils/cell-status';
 import { CellStatusIndicator } from '../../cells/CellStatusIndicator';
@@ -45,13 +45,13 @@ export const AutocompleteCell = ({ meta, value: defaultValue, actions, cellProps
 
   // Handle change for controlled input
   const handleChange = (value: string) => {
-    handleInputChange({ target: { value } } as React.ChangeEvent<HTMLInputElement>);
+    handleInputChange({ target: { value } } as ChangeEvent<HTMLInputElement>);
   };
 
   const getTooltipContent = useCallback(
-    (suggestion: string): React.ReactNode | null => {
+    (suggestion: string): ReactNode | null => {
       const option = filteredOptions.find((opt) => opt.label === suggestion);
-      if (!option || !option.usedBy?.length) {
+      if (option?.usedBy?.length === undefined) {
         return null;
       }
 
@@ -80,7 +80,7 @@ export const AutocompleteCell = ({ meta, value: defaultValue, actions, cellProps
         onBlur={handleInputBlur}
         onFocus={handleInputFocus}
         onKeyDown={handleKeyDown}
-        inputRef={inputRef}
+        inputRef={inputRef as RefObject<HTMLInputElement>}
         preFiltered={true}
         open={isDropdownOpen && suggestions.length > 0}
         getTooltipContent={getTooltipContent}
