@@ -2,20 +2,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import type { EditableTableCellMeta } from './types/cells';
 import type { EditableColumnType } from './types/columns';
 
-// Utility to generate column sizing based on field types
-export function getDefaultColumnSizing(type: string): number {
-  const sizeMap: Record<string, number> = {
-    avatar: 80,
-    boolean: 80,
-    number: 80,
-    date: 120,
-    phone: 140,
-    image: 80,
-  };
-
-  return sizeMap[type] || 180;
-}
-
 export const canSortColumn = (type: EditableColumnType) => ['text', 'number'].includes(type);
 
 // Get filter function based on field type

@@ -43,7 +43,6 @@ export type {
 
 // Utilities
 export {
-  getDefaultColumnSizing,
   canSortColumn,
   getFilterFunction,
   getSortingFunction,
