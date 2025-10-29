@@ -5,6 +5,7 @@ import {
   type ChangeEvent,
   type FocusEvent,
   type KeyboardEvent,
+  type ReactNode,
   type RefObject,
   useEffect,
   useMemo,
@@ -31,7 +32,7 @@ interface AutocompleteProps {
   onFocus?: (e: FocusEvent<HTMLInputElement>) => void;
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void;
   /** Tooltip content for each suggestion - can be string or React component */
-  getTooltipContent?: (suggestion: string) => string | React.ReactNode;
+  getTooltipContent?: (suggestion: string) => string | ReactNode;
 }
 
 export function Autocomplete({
@@ -62,7 +63,7 @@ export function Autocomplete({
   const inputRef = externalInputRef || internalInputRef;
   const isOpenControlled = controlledOpen !== undefined;
   const isOpen = isOpenControlled ? controlledOpen : internalIsOpen;
-  const setIsOpen = isOpenControlled ? () => {} : setInternalIsOpen;
+  const setIsOpen = isOpenControlled ? () => undefined : setInternalIsOpen;
 
   const filteredSuggestions = useMemo(() => {
     if (preFiltered) return suggestions;
@@ -109,24 +110,31 @@ export function Autocomplete({
     if (!isOpen || filteredSuggestions.length === 0) return;
 
     switch (e.key) {
-      case 'ArrowDown':
+      case 'ArrowDown': {
         e.preventDefault();
         setHighlightedIndex((prev) => (prev < filteredSuggestions.length - 1 ? prev + 1 : prev));
         break;
-      case 'ArrowUp':
+      }
+      case 'ArrowUp': {
         e.preventDefault();
         setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : prev));
         break;
-      case 'Enter':
+      }
+      case 'Enter': {
         e.preventDefault();
         if (filteredSuggestions[highlightedIndex]) {
           handleSelect(filteredSuggestions[highlightedIndex]);
         }
         break;
-      case 'Escape':
+      }
+      case 'Escape': {
         e.preventDefault();
         setIsOpen(false);
         break;
+      }
+      default: {
+        break;
+      }
     }
   };
 

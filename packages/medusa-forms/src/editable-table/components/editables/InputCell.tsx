@@ -45,7 +45,7 @@ export const InputCell = ({
 
       cellState.setIsSaving(true);
 
-      const error = await actions.save(e.target.value).catch((e) => {
+      const error = await actions.save(e.target.value).catch(() => {
         cellState.setCanRetrySave(true);
 
         return 'An error occurred. Please try again.';

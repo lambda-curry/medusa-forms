@@ -93,7 +93,7 @@ export const SimpleValidationExample = {
 
     // Simple inline validation
     const getValidateHandler = useCallback((_key: string) => {
-      return async ({ value }: { value: unknown }) => {
+      return ({ value }: { value: unknown }) => {
         if (_key === 'name' && (!value || String(value).length < 2)) {
           return 'Name must be at least 2 characters';
         }

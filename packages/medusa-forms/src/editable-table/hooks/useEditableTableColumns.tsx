@@ -34,7 +34,7 @@ export const useEditableTableColumns = <T extends Record<string, unknown>>({
     const actionsColumn = _createActionsColumn<T>(onView, onDelete);
     const checkboxColumn = enableRowSelection ? _createCheckboxColumn<T>(rowSelection, onRowSelectionChange) : null;
 
-    const allColumns = [];
+    const allColumns: ColumnDef<T>[] = [];
     if (checkboxColumn) allColumns.push(checkboxColumn);
     allColumns.push(...editableColumns);
     if (actionsColumn) allColumns.push(actionsColumn);
