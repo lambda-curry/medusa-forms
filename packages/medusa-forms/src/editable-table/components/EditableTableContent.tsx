@@ -67,10 +67,7 @@ export function EditableTableContent<T extends Record<string, unknown>>({
                           zIndex: 20 - headerIndex, // Higher z-index for columns to the left
                         }),
                       }}
-                      onClick={() => {
-                        if (!header.column.getCanSort()) return;
-                        header.column.getToggleSortingHandler();
-                      }}
+                      onClick={header.column.getToggleSortingHandler()}
                     >
                       {header.isPlaceholder ? null : (
                         <div

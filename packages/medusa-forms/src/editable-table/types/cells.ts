@@ -96,8 +96,6 @@ export type EditableTableConfig<T extends Record<string, unknown>> = {
   enableColumnFilters?: boolean;
   enableSorting?: boolean;
   enablePagination?: boolean;
-  enableColumnPinning?: boolean;
-  enableColumnVisibility?: boolean;
   /** Dynamic column filter patterns (e.g., ['location_levels.*']) for grouping related columns */
   dynamicColumnFilters?: string[];
   enableRowSelection?: boolean;

@@ -1,4 +1,4 @@
-import { DescendingSorting, SidebarRight, XMarkMini } from '@medusajs/icons';
+import { XMarkMini } from '@medusajs/icons';
 import { Button, Input, clx } from '@medusajs/ui';
 import type { Table as TanStackTable } from '@tanstack/react-table';
 import { type ChangeEvent, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -12,10 +12,7 @@ interface EditableTableControlsProps<T extends Record<string, unknown>> {
   table: TanStackTable<T>;
   columnDefs: EditableTableColumnDefinition<T>[];
   showGlobalFilter?: boolean;
-  showColumnVisibility?: boolean;
-  showColumnPinning?: boolean;
   showColumnFilters?: boolean;
-  showSorting?: boolean;
   className?: string;
   searchDebounceMs?: number; // Configurable debounce time
   // Additional action buttons to render on the right side
@@ -23,17 +20,14 @@ interface EditableTableControlsProps<T extends Record<string, unknown>> {
 }
 
 /**
- * EditableTableControls - Component for table controls like search, filters, column visibility
+ * EditableTableControls - Component for table controls like search and filters
  * Includes global search functionality with debouncing and URL persistence
  */
 export function EditableTableControls<T extends Record<string, unknown>>({
   table,
   columnDefs,
   showGlobalFilter = false,
-  showColumnVisibility = false,
-  showColumnPinning = false,
   showColumnFilters = false,
-  showSorting = false,
   className,
   searchDebounceMs = 1000, // Default 1 second
   additionalActions,
@@ -96,20 +90,13 @@ export function EditableTableControls<T extends Record<string, unknown>>({
   };
 
   // Early return if no controls are enabled
-  const hasControls = [
-    showGlobalFilter,
-    showColumnVisibility,
-    showColumnPinning,
-    showColumnFilters,
-    showSorting,
-    additionalActions,
-  ].some(Boolean);
+  const hasControls = [showGlobalFilter, showColumnFilters, additionalActions].some(Boolean);
 
   if (!hasControls) return null;
 
   return (
     <div className={clx('flex flex-col gap-2 border-b border-ui-border-base', className)}>
-      {/* Top Row: Add Filter + Search + Controls */}
+      {/* Top Row: Add Filter + Search + Additional Actions */}
       <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-2">
         {/* Left Side: Add Filter + Search */}
         <div className="flex flex-1 justify-between gap-2 max-md:w-full">
@@ -138,29 +125,10 @@ export function EditableTableControls<T extends Record<string, unknown>>({
           )}
         </div>
 
-        {/* Right Side: Sort + Column Controls + Additional Actions */}
-        <div className="flex justify-end md:items-center gap-2 max-md:w-full">
-          {/* Sorting Button */}
-          {showSorting && (
-            <Button size="small" variant="secondary">
-              <DescendingSorting className="h-4 w-4 mr-1" />
-              Name
-            </Button>
-          )}
-
-          {/* Column Visibility Toggle */}
-          {showColumnVisibility && (
-            <Button size="small" variant="secondary" className="flex items-center gap-1">
-              <SidebarRight className="h-4 w-4" />
-            </Button>
-          )}
-
-          {/* Column Pinning Controls */}
-          {showColumnPinning && <div>{/* Column pinning implementation - future enhancement */}</div>}
-
-          {/* Additional Actions from parent component */}
-          {additionalActions}
-        </div>
+        {/* Right Side: Additional Actions */}
+        {additionalActions && (
+          <div className="flex justify-end md:items-center gap-2 max-md:w-full">{additionalActions}</div>
+        )}
       </div>
 
       {/* Active Filters Row */}

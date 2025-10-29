@@ -57,10 +57,7 @@ export function EditableTable<T extends Record<string, unknown>>({
           table={table}
           columnDefs={inputConfig.editableColumns}
           showGlobalFilter={inputConfig.enableGlobalFilter}
-          showColumnVisibility={inputConfig.enableColumnVisibility}
-          showColumnPinning={inputConfig.enableColumnPinning}
           showColumnFilters={inputConfig.enableColumnFilters}
-          showSorting={inputConfig.enableSorting}
           searchDebounceMs={1000}
           additionalActions={additionalActions}
         />
