@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `EditableTable` is a powerful, feature-rich React component built for the Medusa2 admin interface that provides inline editing capabilities for tabular data. It combines the flexibility of TanStack Table with real-time validation, auto-save functionality, and URL state persistence to create an efficient data management experience.
+The `EditableTable` is a powerful, feature-rich React component built for the Medusa2 admin interface that provides inline editing capabilities for tabular data. It combines the flexibility of TanStack Table with real-time validation, auto-save functionality, column sorting, filtering, and URL state persistence to create an efficient data management experience.
 
 ## Installation & Peer Dependencies
 
@@ -207,7 +207,7 @@ You only need to configure these providers explicitly in isolated environments l
 - **Real-time Validation**: Immediate feedback with Zod schema validation
 - **Auto-save**: Debounced saving with visual status indicators
 - **URL State Persistence**: Table state (search, sort, pagination) persists in URL
-- **Column Management**: Sorting, filtering, pinning, and resizing
+- **Column Management**: Sorting and filtering
 - **Loading States**: Built-in skeleton loading with customizable row/column counts
 - **Tooltip Support**: Column headers can display helpful tooltips
 - **Pagination**: Configurable pagination with customizable page sizes
@@ -347,7 +347,8 @@ export const MyEditableTable = () => {
       showControls={true}
       showPagination={true}
       enableGlobalFilter={true}
-      enableSorting={true}
+      enableSorting={true}        // Enable sorting (click headers)
+      enableColumnFilters={true}  // Enable column filters
       enablePagination={true}
       tableId="my-table" // Optional: for URL state persistence
     />
@@ -365,6 +366,7 @@ export const MyEditableTable = () => {
   type: 'text',
   placeholder: 'Enter title',
   required: true,
+  enableSorting: true,  // Click header to sort
 }
 ```
 
@@ -380,6 +382,7 @@ export const MyEditableTable = () => {
     max: 999999,
     step: 1,
   },
+  enableSorting: true,  // Click header to sort
 }
 ```
 
@@ -1180,10 +1183,8 @@ interface EditableTableProps<T extends Record<string, unknown>> {
   // Table Features
   enableGlobalFilter?: boolean;        // Enable global search
   enableColumnFilters?: boolean;       // Enable column-specific filters
-  enableSorting?: boolean;             // Enable column sorting
+  enableSorting?: boolean;             // Enable column sorting (click headers to sort)
   enablePagination?: boolean;          // Enable pagination
-  enableColumnPinning?: boolean;       // Enable column pinning
-  enableColumnVisibility?: boolean;    // Enable column show/hide
   enableRowSelection?: boolean;        // Enable row selection
   
   // Event Handlers
@@ -1217,10 +1218,8 @@ interface EditableTableColumnDefinition<T> {
   maxWidth?: number;                  // Maximum column width
   
   // Features
-  enableSorting?: boolean;            // Enable sorting for this column
+  enableSorting?: boolean;            // Enable sorting for this column (click header to sort)
   enableFiltering?: boolean;          // Enable filtering for this column
-  enableHiding?: boolean;             // Allow hiding this column
-  isPinnable?: boolean;               // Allow pinning this column
   
   // Dependencies and validation
   dependsOn?: string[];               // Fields this column depends on
@@ -1542,16 +1541,23 @@ describe('Cell Save', () => {
    // Basic column filtering is available
    <EditableTable
      enableColumnFilters={true}
-     // Future: Advanced filter types
-     filterTypes={{
-       status: 'select',
-       date: 'dateRange',
-       price: 'numberRange',
-     }}
+     // Future: Advanced filter types (date ranges, number ranges, etc.)
    />
    ```
 
-4. **Column Tooltips** (✅ Implemented)
+4. **Column Sorting** (✅ Implemented)
+   ```tsx
+   // Click column headers to sort (ascending → descending → unsorted)
+   <EditableTable
+     enableSorting={true}
+     editableColumns={[
+       { name: 'Name', key: 'name', type: 'text', enableSorting: true },
+       { name: 'Price', key: 'price', type: 'number', enableSorting: true },
+     ]}
+   />
+   ```
+
+5. **Column Tooltips** (✅ Implemented)
    ```tsx
    // Tooltip support for column headers is now available
    <EditableTable
@@ -1560,8 +1566,8 @@ describe('Cell Save', () => {
      }}
    />
    ```
-
-5. **Pagination** (✅ Implemented)
+   
+6. **Pagination** (✅ Implemented)
    ```tsx
    // Full pagination system with customizable page sizes
    <EditableTable

@@ -13,7 +13,7 @@ npm install @lambdacurry/medusa-forms
 ## Components
 
 - **Controlled Form Components** - React Hook Form integrated inputs, selects, checkboxes, etc.
-- **EditableTable** - Inline-editing table with validation, auto-save, and URL state persistence
+- **EditableTable** - Inline-editing table with validation, auto-save, sorting, filtering, and URL state persistence
 - **UI Components** - Low-level form components
 
 ## Documentation

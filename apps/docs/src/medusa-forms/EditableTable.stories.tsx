@@ -22,7 +22,8 @@ A powerful, feature-rich table component with inline editing capabilities for ta
 - **Real-time Validation**: Immediate feedback with Zod schema validation
 - **Auto-save**: Debounced saving with visual status indicators
 - **URL State Persistence**: Table state (search, sort, pagination) persists in URL
-- **Column Management**: Sorting, filtering, pinning, and resizing
+- **Column Sorting**: Click column headers to sort data (ascending → descending → unsorted)
+- **Column Filtering**: Filter data by column values with visual chips
 - **Multiple Cell Types**: Text, number, autocomplete, badge
 - **Performance Optimized**: Handles large datasets efficiently
         `,
@@ -84,9 +85,9 @@ export const SimpleValidationExample = {
 
     const columns: EditableTableColumnDefinition<SimpleProduct>[] = useMemo(
       () => [
-        { name: 'Product Name', key: 'name', type: 'text', required: true },
-        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 } },
-        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 } },
+        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 }, enableSorting: true },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
       ],
       [],
     );
@@ -137,13 +138,19 @@ export const SimpleValidationExample = {
     docs: {
       description: {
         story: `
-The simplest EditableTable implementation with basic inline validation.
+The simplest EditableTable implementation with basic inline validation and column sorting.
 
 **Key Features:**
 - Synchronous inline validation functions
 - Simple length and numeric checks (name min 2 chars, price/stock positive)
 - Direct state updates with 300ms simulated save delay
+- **Column sorting** - Click column headers to sort (ascending → descending → unsorted)
 - No external dependencies (no Zod, no async validation)
+
+**Sorting:**
+- All columns have \`enableSorting: true\`
+- Click any column header to toggle sort direction
+- Visual indicators show current sort state
 
 **Use this pattern when:**
 - You have simple validation rules
@@ -953,7 +960,7 @@ export const DynamicColumnFiltersExample = {
     docs: {
       description: {
         story: `
-Dynamic column filters for grouping similar columns under a single URL parameter.
+Dynamic column filters for grouping similar columns under a single URL parameter, with column sorting.
 
 **Filter Categories:**
 - Out of Stock (0 units)
@@ -965,6 +972,7 @@ Dynamic column filters for grouping similar columns under a single URL parameter
 - \`calculateFilterValue\` converts numeric values to filterable categories
 - \`dynamicColumnFilters\` groups region columns: ['region_*']
 - Clean URL format: \`?cf_region=region_east:Low,region_west:High\`
+- **Column sorting** on SKU and Product columns - click headers to sort
 - Works with async-loaded columns
 - 300ms simulated save delay
 
