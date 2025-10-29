@@ -95,12 +95,12 @@ export const SimpleValidationExample = {
     const getValidateHandler = useCallback((_key: string) => {
       return ({ value }: { value: unknown }) => {
         if (_key === 'name' && (!value || String(value).length < 2)) {
-          return 'Name must be at least 2 characters';
+          return Promise.resolve('Name must be at least 2 characters');
         }
         if ((_key === 'price' || _key === 'stock') && (value === null || Number(value) < 0)) {
-          return 'Must be a positive number';
+          return Promise.resolve('Must be a positive number');
         }
-        return null;
+        return Promise.resolve(null);
       };
     }, []);
 
@@ -140,14 +140,14 @@ export const SimpleValidationExample = {
 The simplest EditableTable implementation with basic inline validation.
 
 **Key Features:**
-- Inline validation functions
-- Simple length and numeric checks
-- Direct state updates
-- No external dependencies
+- Synchronous inline validation functions
+- Simple length and numeric checks (name min 2 chars, price/stock positive)
+- Direct state updates with 300ms simulated save delay
+- No external dependencies (no Zod, no async validation)
 
 **Use this pattern when:**
 - You have simple validation rules
-- No need for complex schemas
+- No need for complex schemas or async validation
 - Quick prototyping
         `,
       },
@@ -202,13 +202,13 @@ export const ZodValidationExample = {
       (_key: string) => {
         return ({ value }: { value: unknown }) => {
           const schema = schemas[_key as keyof typeof schemas];
-          if (!schema) return null;
+          if (!schema) return Promise.resolve(null);
 
           const result = schema.safeParse(value);
           if (!result.success) {
-            return result.error.errors[0]?.message || 'Invalid value';
+            return Promise.resolve(result.error.errors[0]?.message || 'Invalid value');
           }
-          return null;
+          return Promise.resolve(null);
         };
       },
       [schemas],
@@ -248,16 +248,17 @@ export const ZodValidationExample = {
 Schema-based validation using Zod for robust type-safe validation.
 
 **Features Demonstrated:**
-- Zod schema validation for each field
-- Complex validation rules (email format, regex patterns)
-- Range validation (min/max)
-- Detailed error messages
+- Synchronous Zod schema validation for each field
+- Complex validation rules (email format, username regex patterns)
+- Range validation (age 18-120) with type coercion
+- Detailed, user-friendly error messages from Zod
+- 400ms simulated save delay
 
 **Use this pattern when:**
-- You need robust validation
+- You need robust, synchronous validation
 - Type safety is important
-- Complex validation rules
-- Reusable validation logic
+- Complex validation rules (regex, formats, ranges)
+- Reusable validation logic across your app
         `,
       },
     },
@@ -374,13 +375,13 @@ export const AsyncOperationsExample = {
 Demonstrates async operations for validation, saving, and fetching options.
 
 **Async Patterns:**
-- **Validation**: Simulates API check (SKU uniqueness)
-- **Save**: Simulates API call with error handling
-- **Options**: Simulates fetching categories from server
+- **Validation**: Simulates API check (SKU uniqueness with 500ms delay)
+- **Save**: Simulates API call with error handling (800ms delay)
+- **Options**: Simulates fetching categories from server (300ms delay)
 
 **Features:**
-- Debounced validation (300ms delay)
-- Error simulation for retry testing
+- Async validation with loading indicators
+- Error simulation for retry testing (10% failure rate)
 - Autocomplete with async data fetching
 - Loading indicators during operations
 
@@ -492,18 +493,19 @@ export const CalculatedValuesExample = {
 Badge columns with calculated values based on other fields.
 
 **Calculated Fields:**
-- **Total**: Automatically calculated from quantity × price
-- **Status**: Read-only display of order status
+- **Total**: Automatically calculated from quantity × price (displayed as green badge)
+- **Status**: Read-only display of order status (green for pending/shipped, red for delivered)
 
 **Key Concepts:**
-- \`calculateValue\` function computes display value
-- Badge columns are read-only
+- \`calculateValue\` returns \`{ status: 'active' | 'inactive', title: string }\` for badges
+- Badge columns are read-only StatusBadge components
 - Values update automatically when dependencies change
-- Perfect for derived data
+- Perfect for derived data and status indicators
+- 300ms simulated save delay
 
 **Use this pattern when:**
-- Display computed values
-- Show status indicators
+- Display computed values (totals, aggregates)
+- Show status indicators with color coding
 - Present read-only derived data
         `,
       },
@@ -629,15 +631,21 @@ Cross-field validation using the table instance to access other rows and fields.
 - **Stock relationship**: Current stock must be >= minimum stock
 - **Bidirectional validation**: Both fields validate against each other
 
+**Badge Column:**
+- **Stock Status**: Visual indicator based on stock levels (red = Low Stock, warning = Warning, green = Good)
+- Calculated from relationship between current_stock and min_stock
+- Returns \`{ status: 'inactive' | 'warning' | 'active', title: string }\`
+
 **Table Instance Usage:**
 - Access all rows: \`table.getCoreRowModel().rows\`
 - Access current row data: \`data\` parameter
 - Check field relationships within same row
 - Validate uniqueness across rows
+- 400ms simulated save delay
 
 **Use this pattern when:**
 - Validate uniqueness constraints
-- Check relationships between fields
+- Check relationships between fields in the same row
 - Enforce business rules across rows
         `,
       },
@@ -762,22 +770,23 @@ Dynamic column generation based on runtime data (stock locations).
 **Dynamic Column Pattern:**
 - Custom hook (\`useStockColumnsDefinition\`) generates columns
 - Columns created from array of locations (could be from API)
-- Calculated total column sums all location stocks
+- Calculated badge column sums all location stocks and displays total
 - Memoized with \`useMemo\` for performance
 
 **Key Concepts:**
-- Base columns + dynamically generated columns
-- Column keys generated programmatically
-- Calculated column aggregates dynamic fields
-- Type-safe with generics
+- Base columns (SKU, Product) + dynamically generated location columns
+- Column keys generated programmatically from location data
+- Badge column aggregates dynamic fields (returns \`{ status: 'active', title: 'X units' }\`)
+- Type-safe with generics and proper TypeScript indexing
 
 **Use this pattern when:**
 - Columns depend on runtime data
 - Number of columns varies (e.g., locations, time periods)
 - Calculated columns aggregate dynamic fields
 
-**Performance Note:**
-Always memoize dynamic columns to prevent re-renders.
+**Implementation Details:**
+- 400ms simulated save delay
+- Always memoize dynamic columns to prevent re-renders
         `,
       },
     },
@@ -961,6 +970,7 @@ Dynamic column filters for grouping similar columns under a single URL parameter
 - \`dynamicColumnFilters\` groups region columns: ['region_*']
 - Clean URL format: \`?cf_region=region_east:Low,region_west:High\`
 - Works with async-loaded columns
+- 300ms simulated save delay
 
 **Use this pattern when:**
 - Multiple similar columns need filtering
@@ -970,8 +980,8 @@ Dynamic column filters for grouping similar columns under a single URL parameter
 
 **Benefits:**
 - Single multi-parser handles all matching columns
-- Better performance than individual parsers
-- Clean, readable URLs
+- Better performance than individual parsers per column
+- Clean, readable URLs with grouped filters
         `,
       },
     },
@@ -1111,8 +1121,9 @@ Using table instance in getOptionsHandler to provide context-aware autocomplete 
 **Benefits:**
 - Options automatically update as data changes
 - No need for separate state management
-- Context-aware suggestions
-- Prevents invalid selections (e.g., self as manager)
+- Context-aware suggestions (e.g., exclude self from manager options)
+- Prevents invalid selections
+- 300ms simulated save delay
 
 **Use this pattern when:**
 - Options come from existing table data
