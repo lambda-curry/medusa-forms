@@ -200,14 +200,12 @@ export const ZodValidationExample = {
 
     const getValidateHandler = useCallback(
       (_key: string) => {
-        return async ({ value }: { value: unknown }) => {
+        return ({ value }: { value: unknown }) => {
           const schema = schemas[_key as keyof typeof schemas];
           alert(`validate ${_key} ${value}`);
-          console.log('🚀  ~ ZodValidationExample ~ schema:', schema);
           if (!schema) return null;
 
           const result = schema.safeParse(value);
-          console.log('🚀 ~ ZodValidationExample ~ result:', result);
           if (!result.success) {
             return result.error.errors[0]?.message || 'Invalid value';
           }
