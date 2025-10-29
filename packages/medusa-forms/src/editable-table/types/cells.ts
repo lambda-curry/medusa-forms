@@ -1,5 +1,5 @@
 import type { SortingState, Table, VisibilityState } from '@tanstack/react-table';
-import type { FunctionComponent } from 'react';
+import type { FunctionComponent, ReactNode } from 'react';
 import type { EditableColumnType } from './columns';
 
 // Editable Table field definition
@@ -107,7 +107,7 @@ export type EditableTableConfig<T extends Record<string, unknown>> = {
   onView?: (item: T) => void;
   onDelete?: (item: T) => void;
   getCellActions: GetCellActionsFn;
-  getTooltipContent?: (columnKey: string, columnName: string) => string | React.ReactNode | null;
+  getTooltipContent?: (columnKey: string, columnName: string) => string | ReactNode | null;
 };
 
 // Cell component map type
@@ -124,7 +124,6 @@ export type EditableCellActions = {
   getOptions: (
     updatedValue: unknown,
   ) => Promise<{ label: string; value: unknown; usedBy?: { id: string; name: string }[] }[]>;
-  // formatValue: (value: unknown) => string; // TODO: enable this
 };
 
 export type GetCellActionsFn = <TRowData extends Record<string, unknown>>(args: {
