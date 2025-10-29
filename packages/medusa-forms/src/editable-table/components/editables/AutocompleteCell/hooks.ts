@@ -1,5 +1,14 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  type ChangeEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDebounce } from 'use-debounce';
 import { useCellState } from '../../../hooks/useCellState';
 import type { EditableCellActions, EditableTableCellMeta } from '../../../types/cells';
@@ -73,6 +82,7 @@ export const useAutocompleteCell = (
   }, []);
 
   // Reset highlighted index when filtered options change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only run when filtered options change
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [filteredOptions]);
@@ -89,7 +99,7 @@ export const useAutocompleteCell = (
       cellState.setIsEditing(false);
       cellState.setIsSaving(true);
 
-      const error = await actions.save(value).catch((e) => {
+      const error = await actions.save(value).catch(() => {
         cellState.setCanRetrySave(true);
 
         return 'An error occurred. Please try again.';
@@ -102,7 +112,7 @@ export const useAutocompleteCell = (
   );
 
   const handleInputChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       const newValue = e.target.value;
       setInputValue(newValue);
 
@@ -120,7 +130,7 @@ export const useAutocompleteCell = (
   );
 
   const handleInputBlur = useCallback(
-    async (e: React.FocusEvent<HTMLInputElement>) => {
+    async (e: FocusEvent<HTMLInputElement>) => {
       // Don't trigger blur save if clicking on dropdown
       if (dropdownRef.current?.contains(e.relatedTarget as Node)) {
         return;
@@ -172,7 +182,7 @@ export const useAutocompleteCell = (
   );
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       if (!isDropdownOpen || filteredOptions.length === 0) {
         if (e.key === 'ArrowDown') {
           setIsDropdownOpen(true);
@@ -181,15 +191,17 @@ export const useAutocompleteCell = (
       }
 
       switch (e.key) {
-        case 'ArrowDown':
+        case 'ArrowDown': {
           e.preventDefault();
           setHighlightedIndex((prev) => (prev < filteredOptions.length - 1 ? prev + 1 : prev));
           break;
-        case 'ArrowUp':
+        }
+        case 'ArrowUp': {
           e.preventDefault();
           setHighlightedIndex((prev) => (prev > 0 ? prev - 1 : -1));
           break;
-        case 'Enter':
+        }
+        case 'Enter': {
           e.preventDefault();
           if (highlightedIndex >= 0 && highlightedIndex < filteredOptions.length) {
             handleOptionSelect(filteredOptions[highlightedIndex]);
@@ -198,11 +210,16 @@ export const useAutocompleteCell = (
             setIsDropdownOpen(false);
           }
           break;
-        case 'Escape':
+        }
+        case 'Escape': {
           e.preventDefault();
           setIsDropdownOpen(false);
           setHighlightedIndex(-1);
           break;
+        }
+        default: {
+          break;
+        }
       }
     },
     [isDropdownOpen, filteredOptions, highlightedIndex, handleOptionSelect],
