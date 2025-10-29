@@ -1,10 +1,11 @@
 import { EditableTable } from '@lambdacurry/medusa-forms/editable-table';
-import type { EditableTableColumnDefinition } from '@lambdacurry/medusa-forms/editable-table';
+import type { CellActionsHandlerGetter, EditableTableColumnDefinition } from '@lambdacurry/medusa-forms/editable-table';
 import { Toaster, TooltipProvider } from '@medusajs/ui';
 import type { Meta } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { z } from 'zod';
 
 const meta = {
   title: 'Medusa Forms/Editable Table',
@@ -18,11 +19,11 @@ A powerful, feature-rich table component with inline editing capabilities for ta
 
 ## Features
 - **Inline Editing**: Edit data directly in table cells
-- **Real-time Validation**: Immediate feedback on field changes
+- **Real-time Validation**: Immediate feedback with Zod schema validation
 - **Auto-save**: Debounced saving with visual status indicators
 - **URL State Persistence**: Table state (search, sort, pagination) persists in URL
 - **Column Management**: Sorting, filtering, pinning, and resizing
-- **Multiple Cell Types**: Text, number, autocomplete, badge, and more
+- **Multiple Cell Types**: Text, number, autocomplete, badge
 - **Performance Optimized**: Handles large datasets efficiently
         `,
       },
@@ -58,406 +59,65 @@ A powerful, feature-rich table component with inline editing capabilities for ta
 
 export default meta;
 
-// Regex patterns defined at top level for performance
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^\d{3}-\d{4}$/;
+// Username regex pattern for Zod validation
+const USERNAME_REGEX = /^[a-z0-9_]+$/;
 
-// Mock data types
-interface Product extends Record<string, unknown> {
-  id: string;
-  name: string;
-  sku: string;
-  price: number;
-  stock: number;
-  category: string;
-  status: 'active' | 'inactive' | 'draft';
-}
+// ============================================================================
+// Story 1: Simple Validation Example
+// ============================================================================
 
-interface InventoryItem extends Record<string, unknown> {
-  id: string;
-  location: string;
-  item_name: string;
-  quantity: number;
-  min_quantity: number;
-  supplier: string;
-}
-
-// Mock data generators
-const mockProducts: Product[] = Array.from({ length: 50 }, (_, i) => ({
-  id: `prod-${i + 1}`,
-  name: `Product ${i + 1}`,
-  sku: `SKU-${String(i + 1).padStart(4, '0')}`,
-  price: Math.floor(Math.random() * 500) + 10,
-  stock: Math.floor(Math.random() * 200),
-  category: ['Electronics', 'Clothing', 'Home & Garden', 'Sports'][Math.floor(Math.random() * 4)] || 'Electronics',
-  status: (['active', 'inactive', 'draft'] as const)[Math.floor(Math.random() * 3)] || 'active',
-}));
-
-const mockInventory: InventoryItem[] = Array.from({ length: 30 }, (_, i) => ({
-  id: `inv-${i + 1}`,
-  location: `Warehouse ${String.fromCharCode(65 + (i % 5))}`,
-  item_name: `Item ${i + 1}`,
-  quantity: Math.floor(Math.random() * 500),
-  min_quantity: Math.floor(Math.random() * 50),
-  supplier: ['Supplier A', 'Supplier B', 'Supplier C', 'Supplier D'][Math.floor(Math.random() * 4)] || 'Supplier A',
-}));
-
-// Product columns
-const productColumns: EditableTableColumnDefinition<Product>[] = [
-  {
-    name: 'Product Name',
-    key: 'name',
-    type: 'text',
-    required: true,
-    enableSorting: true,
-    enableFiltering: true,
-  },
-  {
-    name: 'SKU',
-    key: 'sku',
-    type: 'text',
-    required: true,
-    enableSorting: true,
-    enableFiltering: true,
-  },
-  {
-    name: 'Price',
-    key: 'price',
-    type: 'number',
-    required: true,
-    enableSorting: true,
-    cellProps: { min: 0, step: 0.01 },
-  },
-  {
-    name: 'Stock',
-    key: 'stock',
-    type: 'number',
-    required: true,
-    enableSorting: true,
-    cellProps: { min: 0 },
-  },
-  {
-    name: 'Category',
-    key: 'category',
-    type: 'autocomplete',
-    enableFiltering: true,
-  },
-  {
-    name: 'Status',
-    key: 'status',
-    type: 'badge',
-    enableFiltering: true,
-    calculateValue: (key, data) => data[key],
-  },
-];
-
-// Inventory columns
-const inventoryColumns: EditableTableColumnDefinition<InventoryItem>[] = [
-  {
-    name: 'Location',
-    key: 'location',
-    type: 'autocomplete',
-    required: true,
-    enableFiltering: true,
-  },
-  {
-    name: 'Item Name',
-    key: 'item_name',
-    type: 'text',
-    required: true,
-    enableSorting: true,
-    enableFiltering: true,
-  },
-  {
-    name: 'Quantity',
-    key: 'quantity',
-    type: 'number',
-    required: true,
-    enableSorting: true,
-    cellProps: { min: 0 },
-  },
-  {
-    name: 'Min Quantity',
-    key: 'min_quantity',
-    type: 'number',
-    required: true,
-    enableSorting: true,
-    cellProps: { min: 0 },
-  },
-  {
-    name: 'Supplier',
-    key: 'supplier',
-    type: 'autocomplete',
-    required: true,
-    enableFiltering: true,
-  },
-];
-
-// Basic Product Table
-export const BasicProductTable = {
-  name: 'Basic Product Table',
+export const SimpleValidationExample = {
+  name: '1. Simple Validation',
   render: () => {
-    const [data, setData] = useState(mockProducts);
+    interface SimpleProduct extends Record<string, unknown> {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
 
-    const validateProductField = (key: string, value: unknown) => {
-      const valueStr = String(value);
-      const valueNum = Number(value);
+    const [data, setData] = useState<SimpleProduct[]>([
+      { id: '1', name: 'Laptop', price: 999, stock: 15 },
+      { id: '2', name: 'Mouse', price: 29, stock: 50 },
+      { id: '3', name: 'Keyboard', price: 79, stock: 30 },
+    ]);
 
-      if (key === 'name' && (!value || valueStr.length < 3)) {
-        return 'Product name must be at least 3 characters';
-      }
-      if (key === 'sku' && (!value || valueStr.length < 4)) {
-        return 'SKU must be at least 4 characters';
-      }
-      if ((key === 'price' || key === 'stock') && (value === null || value === undefined || valueNum < 0)) {
-        return 'Value must be greater than or equal to 0';
-      }
-      return null;
-    };
-
-    const getValidateHandler = (key: string) => {
-      return async ({ value }: { value: unknown }) => validateProductField(key, value);
-    };
-
-    const getSaveHandler = (key: string) => {
-      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
-        // Simulate API call
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Update data
-        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
-
-        return null; // Success
-      };
-    };
-
-    const getOptionsHandler = (key: string) => {
-      return async ({ value }: { value: unknown }) => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-
-        const searchTerm = String(value || '').toLowerCase();
-
-        if (key === 'category') {
-          const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books', 'Toys'];
-          return categories
-            .filter((cat) => cat.toLowerCase().includes(searchTerm))
-            .map((cat) => ({ label: cat, value: cat }));
-        }
-
-        return [];
-      };
-    };
-
-    return (
-      <EditableTable
-        data={data}
-        editableColumns={productColumns}
-        getValidateHandler={getValidateHandler}
-        getSaveHandler={getSaveHandler}
-        getOptionsHandler={getOptionsHandler}
-        enableGlobalFilter={true}
-        enableColumnFilters={true}
-        enableSorting={true}
-        enablePagination={true}
-        showControls={true}
-        showPagination={true}
-      />
+    const columns: EditableTableColumnDefinition<SimpleProduct>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text', required: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 } },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 } },
+      ],
+      [],
     );
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: `
-A basic product table demonstrating core EditableTable functionality:
 
-**Features Demonstrated:**
-- Inline text and number editing
-- Real-time validation (min length, non-negative numbers)
-- Auto-save with debouncing
-- Global search across all columns
-- Column sorting
-- Column filtering
-- Pagination
-- Autocomplete for category selection
-- Visual status indicators for cell states
+    // Simple inline validation
+    const getValidateHandler = useCallback((_key: string) => {
+      return async ({ value }: { value: unknown }) => {
+        if (_key === 'name' && (!value || String(value).length < 2)) {
+          return 'Name must be at least 2 characters';
+        }
+        if ((_key === 'price' || _key === 'stock') && (value === null || Number(value) < 0)) {
+          return 'Must be a positive number';
+        }
+        return null;
+      };
+    }, []);
 
-**Interactions:**
-- Click any cell to edit inline
-- Changes are validated and auto-saved after a brief delay
-- Use the search bar to filter products globally
-- Click column headers to sort
-- Use the filter dropdowns to filter by specific columns
-- Navigate pages using pagination controls
-        `,
-      },
-    },
-  },
-};
-
-// Inventory Management Table
-export const InventoryManagementTable = {
-  name: 'Inventory Management',
-  render: () => {
-    const [data, setData] = useState(mockInventory);
-
-    const validateInventoryField = (key: string, value: unknown, data: Record<string, unknown>) => {
-      const valueNum = Number(value);
-      const valueStr = String(value);
-
-      if (!value || valueStr.trim() === '') {
-        return 'This field is required';
-      }
-      if ((key === 'quantity' || key === 'min_quantity') && valueNum < 0) {
-        return 'Quantity cannot be negative';
-      }
-      const minQty = data.min_quantity as number;
-      if (key === 'quantity' && minQty && valueNum < minQty) {
-        return `Quantity cannot be less than minimum (${minQty})`;
-      }
-      return null;
-    };
-
-    const getValidateHandler = (key: string) => {
-      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) =>
-        validateInventoryField(key, value, data);
-    };
-
-    const getSaveHandler = (key: string) => {
+    // Simple inline save
+    const getSaveHandler = useCallback((key: string) => {
       return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await new Promise((resolve) => setTimeout(resolve, 300));
         setData((prev) =>
-          prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as InventoryItem) : item)),
+          prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as SimpleProduct) : item)),
         );
         return null;
       };
-    };
+    }, []);
 
-    const getOptionsHandler = (key: string) => {
-      return async ({ value }: { value: unknown }) => {
-        await new Promise((resolve) => setTimeout(resolve, 150));
-        const searchTerm = String(value || '').toLowerCase();
-
-        if (key === 'location') {
-          const locations = ['Warehouse A', 'Warehouse B', 'Warehouse C', 'Warehouse D', 'Warehouse E'];
-          return locations
-            .filter((loc) => loc.toLowerCase().includes(searchTerm))
-            .map((loc) => ({ label: loc, value: loc }));
-        }
-
-        if (key === 'supplier') {
-          const suppliers = [
-            'Supplier A',
-            'Supplier B',
-            'Supplier C',
-            'Supplier D',
-            'Global Suppliers Inc',
-            'Direct Wholesale',
-          ];
-          return suppliers
-            .filter((sup) => sup.toLowerCase().includes(searchTerm))
-            .map((sup) => ({ label: sup, value: sup }));
-        }
-
-        return [];
-      };
-    };
-
-    return (
-      <EditableTable
-        data={data}
-        editableColumns={inventoryColumns}
-        getValidateHandler={getValidateHandler}
-        getSaveHandler={getSaveHandler}
-        getOptionsHandler={getOptionsHandler}
-        enableGlobalFilter={true}
-        enableColumnFilters={true}
-        enableSorting={true}
-        enablePagination={true}
-        showControls={true}
-        showPagination={true}
-      />
-    );
-  },
-  parameters: {
-    docs: {
-      description: {
-        story: `
-An inventory management table with complex validation rules:
-
-**Advanced Features:**
-- **Cross-field validation**: Quantity must be >= min_quantity
-- **Autocomplete fields**: Location and supplier with async search
-- **Conditional validation**: Different rules for different field types
-- **Required field validation**: All fields must have values
-
-**Business Rules:**
-- Quantities cannot be negative
-- Current quantity must meet or exceed minimum quantity threshold
-- Locations and suppliers are selected from autocomplete dropdowns
-- All fields are required
-        `,
-      },
-    },
-  },
-};
-
-// Simple Text Table
-export const SimpleTextTable = {
-  name: 'Simple Text Table',
-  render: () => {
-    interface SimpleData extends Record<string, unknown> {
-      id: string;
-      name: string;
-      email: string;
-      phone: string;
-    }
-
-    const simpleData: SimpleData[] = [
-      { id: '1', name: 'John Doe', email: 'john@example.com', phone: '555-0001' },
-      { id: '2', name: 'Jane Smith', email: 'jane@example.com', phone: '555-0002' },
-      { id: '3', name: 'Bob Johnson', email: 'bob@example.com', phone: '555-0003' },
-      { id: '4', name: 'Alice Brown', email: 'alice@example.com', phone: '555-0004' },
-      { id: '5', name: 'Charlie Davis', email: 'charlie@example.com', phone: '555-0005' },
-    ];
-
-    const [data, setData] = useState(simpleData);
-
-    const columns: EditableTableColumnDefinition<SimpleData>[] = [
-      { name: 'Name', key: 'name', type: 'text', required: true, enableSorting: true },
-      { name: 'Email', key: 'email', type: 'text', required: true, enableSorting: true },
-      { name: 'Phone', key: 'phone', type: 'text', required: true },
-    ];
-
-    const validateContactField = (key: string, value: unknown) => {
-      const valueStr = String(value);
-
-      if (!value || valueStr.trim() === '') {
-        return 'This field is required';
-      }
-      if (key === 'email' && !EMAIL_REGEX.test(valueStr)) {
-        return 'Invalid email format';
-      }
-      if (key === 'phone' && !PHONE_REGEX.test(valueStr)) {
-        return 'Phone must be in format: XXX-XXXX';
-      }
-      return null;
-    };
-
-    const getValidateHandler = (key: string) => {
-      return async ({ value }: { value: unknown }) => validateContactField(key, value);
-    };
-
-    const getSaveHandler = (key: string) => {
-      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
-        await new Promise((resolve) => setTimeout(resolve, 400));
-        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as SimpleData) : item)));
-        return null;
-      };
-    };
-
-    const getOptionsHandler = () => {
+    const getOptionsHandler = useCallback(() => {
       return async () => [];
-    };
+    }, []);
 
     return (
       <EditableTable
@@ -468,7 +128,6 @@ export const SimpleTextTable = {
         getOptionsHandler={getOptionsHandler}
         enableGlobalFilter={true}
         enableSorting={true}
-        enablePagination={false}
         showControls={true}
         showPagination={false}
       />
@@ -478,35 +137,1016 @@ export const SimpleTextTable = {
     docs: {
       description: {
         story: `
-A simple contact table demonstrating format validation:
+The simplest EditableTable implementation with basic inline validation.
 
-**Validation Rules:**
-- **Email**: Must match standard email format
-- **Phone**: Must match XXX-XXXX format
-- **All fields**: Required
+**Key Features:**
+- Inline validation functions
+- Simple length and numeric checks
+- Direct state updates
+- No external dependencies
 
-**Simplified Configuration:**
-- No pagination (small dataset)
-- Text-only fields
-- Format-specific validation
-- Real-time feedback on validation errors
+**Use this pattern when:**
+- You have simple validation rules
+- No need for complex schemas
+- Quick prototyping
         `,
       },
     },
   },
 };
 
-// Loading State
-export const LoadingState = {
-  name: 'Loading State',
+// ============================================================================
+// Story 2: Zod Validation Example
+// ============================================================================
+
+export const ZodValidationExample = {
+  name: '2. Zod Schema Validation',
   render: () => {
-    const columns: EditableTableColumnDefinition<Product>[] = [
-      { name: 'Name', key: 'name', type: 'text' },
-      { name: 'SKU', key: 'sku', type: 'text' },
-      { name: 'Price', key: 'price', type: 'number' },
-      { name: 'Stock', key: 'stock', type: 'number' },
-      { name: 'Category', key: 'category', type: 'text' },
+    interface User extends Record<string, unknown> {
+      id: string;
+      email: string;
+      age: number;
+      username: string;
+    }
+
+    const [data, setData] = useState<User[]>([
+      { id: '1', email: 'john@example.com', age: 25, username: 'john_doe' },
+      { id: '2', email: 'jane@example.com', age: 30, username: 'jane_smith' },
+      { id: '3', email: 'bob@example.com', age: 28, username: 'bob_j' },
+    ]);
+
+    const columns: EditableTableColumnDefinition<User>[] = useMemo(
+      () => [
+        { name: 'Email', key: 'email', type: 'text', required: true },
+        { name: 'Username', key: 'username', type: 'text', required: true },
+        { name: 'Age', key: 'age', type: 'number', cellProps: { min: 18, max: 120 } },
+      ],
+      [],
+    );
+
+    // Zod validation schemas (memoized)
+    const schemas = useMemo(
+      () => ({
+        email: z.string().email('Invalid email format').min(5, 'Email too short'),
+        username: z
+          .string()
+          .min(3, 'Username must be at least 3 characters')
+          .max(20, 'Username too long')
+          .regex(USERNAME_REGEX, 'Username can only contain lowercase letters, numbers, and underscores'),
+        age: z.coerce.number().int('Age must be a whole number').min(18, 'Must be 18+').max(120, 'Invalid age'),
+      }),
+      [],
+    );
+
+    const getValidateHandler = useCallback(
+      (_key: string) => {
+        return async ({ value }: { value: unknown }) => {
+          const schema = schemas[_key as keyof typeof schemas];
+          alert(`validate ${_key} ${value}`);
+          console.log('🚀  ~ ZodValidationExample ~ schema:', schema);
+          if (!schema) return null;
+
+          const result = schema.safeParse(value);
+          console.log('🚀 ~ ZodValidationExample ~ result:', result);
+          if (!result.success) {
+            return result.error.errors[0]?.message || 'Invalid value';
+          }
+          return null;
+        };
+      },
+      [schemas],
+    );
+
+    const getSaveHandler: CellActionsHandlerGetter<string | null> = useCallback((key: string) => {
+      return async ({ value, data }) => {
+        // Note: Validation is called automatically before save - don't call it manually
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as User) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Schema-based validation using Zod for robust type-safe validation.
+
+**Features Demonstrated:**
+- Zod schema validation for each field
+- Complex validation rules (email format, regex patterns)
+- Range validation (min/max)
+- Detailed error messages
+
+**Use this pattern when:**
+- You need robust validation
+- Type safety is important
+- Complex validation rules
+- Reusable validation logic
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 3: Async Operations Example
+// ============================================================================
+
+export const AsyncOperationsExample = {
+  name: '3. Async Validation & Save',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      sku: string;
+      name: string;
+      category: string;
+    }
+
+    const [data, setData] = useState<Product[]>([
+      { id: '1', sku: 'LAPTOP-001', name: 'Gaming Laptop', category: 'Electronics' },
+      { id: '2', sku: 'MOUSE-002', name: 'Wireless Mouse', category: 'Electronics' },
+      { id: '3', sku: 'DESK-003', name: 'Standing Desk', category: 'Furniture' },
+    ]);
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'SKU', key: 'sku', type: 'text', required: true },
+        { name: 'Product Name', key: 'name', type: 'text', required: true },
+        { name: 'Category', key: 'category', type: 'autocomplete', required: true },
+      ],
+      [],
+    );
+
+    // Async validation (simulates API check)
+    const getValidateHandler: CellActionsHandlerGetter<string | null> = useCallback((_key: string) => {
+      return async ({ value, table }) => {
+        if (_key === 'sku') {
+          // Simulate API call to check SKU uniqueness
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // Use table instance instead of data state to avoid re-renders
+          const allRows = table.getCoreRowModel().rows;
+          const skuExists = allRows.some((row) => row.original.sku === value);
+          if (skuExists && String(value).length > 0) {
+            // In real app, check against server data
+            return 'SKU validation completed';
+          }
+        }
+
+        if (!value || String(value).trim() === '') {
+          return 'This field is required';
+        }
+
+        return null;
+      };
+    }, []); // No dependencies - use table instance instead
+
+    // Async save (simulates API call)
+    const getSaveHandler: CellActionsHandlerGetter<string | null> = useCallback((key: string) => {
+      return async ({ value, data }) => {
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 800));
+
+        // Simulate occasional API errors
+        if (Math.random() > 0.9) {
+          return 'Network error - please retry';
+        }
+
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
+        return null;
+      };
+    }, []);
+
+    // Async options (simulates API fetch)
+    const getOptionsHandler: CellActionsHandlerGetter<{ label: string; value: unknown }[]> = useCallback(
+      (key: string) => {
+        return async ({ value }) => {
+          if (key === 'category') {
+            // Simulate API call
+            await new Promise((resolve) => setTimeout(resolve, 300));
+
+            const searchTerm = String(value || '').toLowerCase();
+            const categories = ['Electronics', 'Furniture', 'Office Supplies', 'Home & Garden', 'Sports', 'Automotive'];
+
+            return categories
+              .filter((cat) => cat.toLowerCase().includes(searchTerm))
+              .map((cat) => ({ label: cat, value: cat }));
+          }
+          return [];
+        };
+      },
+      [],
+    );
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Demonstrates async operations for validation, saving, and fetching options.
+
+**Async Patterns:**
+- **Validation**: Simulates API check (SKU uniqueness)
+- **Save**: Simulates API call with error handling
+- **Options**: Simulates fetching categories from server
+
+**Features:**
+- Debounced validation (300ms delay)
+- Error simulation for retry testing
+- Autocomplete with async data fetching
+- Loading indicators during operations
+
+**Use this pattern when:**
+- Validation requires server checks
+- Data must be saved to an API
+- Autocomplete options come from server
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 4: Calculated Values (Badge Columns)
+// ============================================================================
+
+export const CalculatedValuesExample = {
+  name: '4. Calculated Values & Badges',
+  render: () => {
+    interface OrderItem extends Record<string, unknown> {
+      id: string;
+      product: string;
+      quantity: number;
+      price: number;
+      status: 'pending' | 'shipped' | 'delivered';
+    }
+
+    const [data, setData] = useState<OrderItem[]>([
+      { id: '1', product: 'Laptop', quantity: 2, price: 999, status: 'shipped' },
+      { id: '2', product: 'Mouse', quantity: 5, price: 29, status: 'delivered' },
+      { id: '3', product: 'Keyboard', quantity: 3, price: 79, status: 'pending' },
+    ]);
+
+    const columns: EditableTableColumnDefinition<OrderItem>[] = useMemo(
+      () => [
+        { name: 'Product', key: 'product', type: 'text', required: true },
+        { name: 'Quantity', key: 'quantity', type: 'number', cellProps: { min: 1 } },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 } },
+        {
+          name: 'Total',
+          key: 'total',
+          type: 'badge',
+          calculateValue: (_key, data) => {
+            const quantity = Number(data.quantity) || 0;
+            const price = Number(data.price) || 0;
+            const total = quantity * price;
+            return `$${total.toFixed(2)}`;
+          },
+        },
+        {
+          name: 'Status',
+          key: 'status',
+          type: 'badge',
+          calculateValue: (_key, data) => data.status,
+        },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return async ({ value }: { value: unknown }) => {
+        await Promise.resolve(); // Ensure async
+        if ((_key === 'quantity' || _key === 'price') && Number(value) <= 0) {
+          return 'Must be greater than 0';
+        }
+        if (_key === 'product' && String(value).length < 2) {
+          return 'Product name too short';
+        }
+        return null;
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as OrderItem) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Badge columns with calculated values based on other fields.
+
+**Calculated Fields:**
+- **Total**: Automatically calculated from quantity × price
+- **Status**: Read-only display of order status
+
+**Key Concepts:**
+- \`calculateValue\` function computes display value
+- Badge columns are read-only
+- Values update automatically when dependencies change
+- Perfect for derived data
+
+**Use this pattern when:**
+- Display computed values
+- Show status indicators
+- Present read-only derived data
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 5: Cross-Field Validation (Table Instance)
+// ============================================================================
+
+export const CrossFieldValidationExample = {
+  name: '5. Cross-Field Validation',
+  render: () => {
+    interface InventoryItem extends Record<string, unknown> {
+      id: string;
+      sku: string;
+      name: string;
+      min_stock: number;
+      current_stock: number;
+    }
+
+    const [data, setData] = useState<InventoryItem[]>([
+      { id: '1', sku: 'ITEM-001', name: 'Widget A', min_stock: 10, current_stock: 50 },
+      { id: '2', sku: 'ITEM-002', name: 'Widget B', min_stock: 5, current_stock: 20 },
+      { id: '3', sku: 'ITEM-003', name: 'Widget C', min_stock: 15, current_stock: 15 },
+    ]);
+
+    const columns: EditableTableColumnDefinition<InventoryItem>[] = useMemo(
+      () => [
+        { name: 'SKU', key: 'sku', type: 'text', required: true },
+        { name: 'Product Name', key: 'name', type: 'text', required: true },
+        { name: 'Min Stock', key: 'min_stock', type: 'number', cellProps: { min: 0 } },
+        { name: 'Current Stock', key: 'current_stock', type: 'number', cellProps: { min: 0 } },
+        {
+          name: 'Stock Status',
+          key: 'stock_status',
+          type: 'badge',
+          calculateValue: (_key, data) => {
+            const current = Number(data.current_stock) || 0;
+            const min = Number(data.min_stock) || 0;
+            if (current < min) return 'Low Stock';
+            if (current < min * 1.5) return 'Warning';
+            return 'Good';
+          },
+        },
+      ],
+      [],
+    );
+
+    // Cross-field validation using table instance
+    const getValidateHandler: CellActionsHandlerGetter<string | null> = useCallback((_key: string) => {
+      return async ({ value, data, table }) => {
+        await Promise.resolve(); // Ensure async
+        if (!value || String(value).trim() === '') {
+          return 'Required field';
+        }
+
+        // Validate SKU uniqueness across all rows
+        if (_key === 'sku') {
+          const allRows = table.getCoreRowModel().rows;
+          const duplicate = allRows.find((row) => row.original.sku === value && row.original.id !== data.id);
+          if (duplicate) {
+            return 'SKU must be unique';
+          }
+        }
+
+        // Validate current_stock >= min_stock
+        if (_key === 'current_stock') {
+          const minStock = Number(data.min_stock) || 0;
+          if (Number(value) < minStock) {
+            return `Stock cannot be less than minimum (${minStock})`;
+          }
+        }
+
+        // Validate min_stock <= current_stock
+        if (_key === 'min_stock') {
+          const currentStock = Number(data.current_stock) || 0;
+          if (Number(value) > currentStock) {
+            return `Minimum cannot exceed current stock (${currentStock})`;
+          }
+        }
+
+        return null;
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        setData((prev) =>
+          prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as InventoryItem) : item)),
+        );
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Cross-field validation using the table instance to access other rows and fields.
+
+**Validation Rules:**
+- **SKU uniqueness**: Checks across all rows using table.getCoreRowModel()
+- **Stock relationship**: Current stock must be >= minimum stock
+- **Bidirectional validation**: Both fields validate against each other
+
+**Table Instance Usage:**
+- Access all rows: \`table.getCoreRowModel().rows\`
+- Access current row data: \`data\` parameter
+- Check field relationships within same row
+- Validate uniqueness across rows
+
+**Use this pattern when:**
+- Validate uniqueness constraints
+- Check relationships between fields
+- Enforce business rules across rows
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 6: Dynamic Columns with Custom Hook
+// ============================================================================
+
+export const DynamicColumnsExample = {
+  name: '6. Dynamic Columns (Stock Locations)',
+  render: () => {
+    interface StockLocationData extends Record<string, unknown> {
+      id: string;
+      sku: string;
+      product: string;
+      [key: `location_${string}`]: number;
+    }
+
+    // Simulate stock locations from API
+    const stockLocations = [
+      { id: 'loc-1', name: 'Warehouse A', code: 'WH-A' },
+      { id: 'loc-2', name: 'Warehouse B', code: 'WH-B' },
+      { id: 'loc-3', name: 'Store NYC', code: 'NYC' },
     ];
+
+    const [data, setData] = useState<StockLocationData[]>([
+      { id: '1', sku: 'PROD-001', product: 'Widget', location_loc1: 100, location_loc2: 50, location_loc3: 25 },
+      { id: '2', sku: 'PROD-002', product: 'Gadget', location_loc1: 75, location_loc2: 30, location_loc3: 10 },
+      { id: '3', sku: 'PROD-003', product: 'Device', location_loc1: 200, location_loc2: 100, location_loc3: 50 },
+    ]);
+
+    // Custom hook pattern for column definitions
+    const useStockColumnsDefinition = () => {
+      return useMemo(() => {
+        const baseColumns: EditableTableColumnDefinition<StockLocationData>[] = [
+          { name: 'SKU', key: 'sku', type: 'text', required: true },
+          { name: 'Product', key: 'product', type: 'text', required: true },
+        ];
+
+        // Dynamically generate location columns
+        const locationColumns = stockLocations.map((location) => ({
+          name: location.name,
+          key: `location_${location.id.replace('loc-', 'loc')}`,
+          type: 'number' as const,
+          placeholder: '0',
+          cellProps: { min: 0, max: 999999 },
+        })) as EditableTableColumnDefinition<StockLocationData>[];
+
+        // Calculate total column
+        const totalColumn: EditableTableColumnDefinition<StockLocationData> = {
+          name: 'Total Stock',
+          key: 'total',
+          type: 'badge',
+          calculateValue: (_key, data) => {
+            const total = stockLocations.reduce((sum, loc) => {
+              const locationKey = `location_${loc.id.replace('loc-', 'loc')}`;
+              return sum + (Number(data[locationKey]) || 0);
+            }, 0);
+            return {
+              status: 'active',
+              title: `${total} units`,
+            };
+          },
+        };
+
+        return [...baseColumns, ...locationColumns, totalColumn];
+      }, []);
+    };
+
+    const columns = useStockColumnsDefinition();
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return async ({ value }: { value: unknown }) => {
+        await Promise.resolve(); // Ensure async
+        if (_key.startsWith('location_') && Number(value) < 0) {
+          return 'Stock cannot be negative';
+        }
+        if ((_key === 'sku' || _key === 'product') && (!value || String(value).length < 2)) {
+          return 'Must be at least 2 characters';
+        }
+        return null;
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 400));
+        setData((prev) =>
+          prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as StockLocationData) : item)),
+        );
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Dynamic column generation based on runtime data (stock locations).
+
+**Dynamic Column Pattern:**
+- Custom hook (\`useStockColumnsDefinition\`) generates columns
+- Columns created from array of locations (could be from API)
+- Calculated total column sums all location stocks
+- Memoized with \`useMemo\` for performance
+
+**Key Concepts:**
+- Base columns + dynamically generated columns
+- Column keys generated programmatically
+- Calculated column aggregates dynamic fields
+- Type-safe with generics
+
+**Use this pattern when:**
+- Columns depend on runtime data
+- Number of columns varies (e.g., locations, time periods)
+- Calculated columns aggregate dynamic fields
+
+**Performance Note:**
+Always memoize dynamic columns to prevent re-renders.
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 7: Dynamic Column Filters
+// ============================================================================
+
+export const DynamicColumnFiltersExample = {
+  name: '7. Dynamic Column Filters',
+  render: () => {
+    interface RegionalStock extends Record<string, unknown> {
+      id: string;
+      sku: string;
+      product: string;
+      region_east: number;
+      region_west: number;
+      region_north: number;
+      region_south: number;
+    }
+
+    const [data, setData] = useState<RegionalStock[]>([
+      {
+        id: '1',
+        sku: 'PROD-001',
+        product: 'Widget A',
+        region_east: 150,
+        region_west: 80,
+        region_north: 20,
+        region_south: 5,
+      },
+      {
+        id: '2',
+        sku: 'PROD-002',
+        product: 'Widget B',
+        region_east: 0,
+        region_west: 100,
+        region_north: 50,
+        region_south: 30,
+      },
+      {
+        id: '3',
+        sku: 'PROD-003',
+        product: 'Gadget C',
+        region_east: 200,
+        region_west: 0,
+        region_north: 150,
+        region_south: 0,
+      },
+      {
+        id: '4',
+        sku: 'PROD-004',
+        product: 'Device D',
+        region_east: 50,
+        region_west: 45,
+        region_north: 0,
+        region_south: 90,
+      },
+    ]);
+
+    const columns: EditableTableColumnDefinition<RegionalStock>[] = useMemo(
+      () => [
+        { name: 'SKU', key: 'sku', type: 'text', required: true, enableSorting: true },
+        { name: 'Product', key: 'product', type: 'text', required: true, enableSorting: true },
+        {
+          name: 'East Region',
+          key: 'region_east',
+          type: 'number',
+          cellProps: { min: 0 },
+          enableFiltering: true,
+          calculateFilterValue: (value) => {
+            const qty = Number(value);
+            if (qty === 0) return 'Out of Stock';
+            if (qty < 50) return 'Low (<50)';
+            if (qty < 100) return 'Medium (50-99)';
+            return 'High (100+)';
+          },
+        },
+        {
+          name: 'West Region',
+          key: 'region_west',
+          type: 'number',
+          cellProps: { min: 0 },
+          enableFiltering: true,
+          calculateFilterValue: (value) => {
+            const qty = Number(value);
+            if (qty === 0) return 'Out of Stock';
+            if (qty < 50) return 'Low (<50)';
+            if (qty < 100) return 'Medium (50-99)';
+            return 'High (100+)';
+          },
+        },
+        {
+          name: 'North Region',
+          key: 'region_north',
+          type: 'number',
+          cellProps: { min: 0 },
+          enableFiltering: true,
+          calculateFilterValue: (value) => {
+            const qty = Number(value);
+            if (qty === 0) return 'Out of Stock';
+            if (qty < 50) return 'Low (<50)';
+            if (qty < 100) return 'Medium (50-99)';
+            return 'High (100+)';
+          },
+        },
+        {
+          name: 'South Region',
+          key: 'region_south',
+          type: 'number',
+          cellProps: { min: 0 },
+          enableFiltering: true,
+          calculateFilterValue: (value) => {
+            const qty = Number(value);
+            if (qty === 0) return 'Out of Stock';
+            if (qty < 50) return 'Low (<50)';
+            if (qty < 100) return 'Medium (50-99)';
+            return 'High (100+)';
+          },
+        },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return async ({ value }: { value: unknown }) => {
+        await Promise.resolve(); // Ensure async
+        if (_key.startsWith('region_') && Number(value) < 0) {
+          return 'Stock cannot be negative';
+        }
+        return null;
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) =>
+          prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as RegionalStock) : item)),
+        );
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        enableColumnFilters={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+        dynamicColumnFilters={['region_*']}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Dynamic column filters for grouping similar columns under a single URL parameter.
+
+**Filter Categories:**
+- Out of Stock (0 units)
+- Low (<50 units)
+- Medium (50-99 units)
+- High (100+ units)
+
+**Key Features:**
+- \`calculateFilterValue\` converts numeric values to filterable categories
+- \`dynamicColumnFilters\` groups region columns: ['region_*']
+- Clean URL format: \`?cf_region=region_east:Low,region_west:High\`
+- Works with async-loaded columns
+
+**Use this pattern when:**
+- Multiple similar columns need filtering
+- Columns are created from API data
+- Want readable filter categories instead of raw values
+- Need clean URL state management
+
+**Benefits:**
+- Single multi-parser handles all matching columns
+- Better performance than individual parsers
+- Clean, readable URLs
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 8: Table Instance - Dynamic Options
+// ============================================================================
+
+export const TableInstanceOptionsExample = {
+  name: '8. Table Instance in Options',
+  render: () => {
+    interface TeamMember extends Record<string, unknown> {
+      id: string;
+      name: string;
+      role: string;
+      department: string;
+      manager: string;
+    }
+
+    const [data, setData] = useState<TeamMember[]>([
+      { id: '1', name: 'Alice Johnson', role: 'Developer', department: 'Engineering', manager: '' },
+      { id: '2', name: 'Bob Smith', role: 'Designer', department: 'Design', manager: 'Alice Johnson' },
+      { id: '3', name: 'Charlie Brown', role: 'Developer', department: 'Engineering', manager: 'Alice Johnson' },
+      { id: '4', name: 'Diana Prince', role: 'Manager', department: 'Engineering', manager: '' },
+      { id: '5', name: 'Eve Davis', role: 'Developer', department: 'Engineering', manager: 'Diana Prince' },
+    ]);
+
+    const columns: EditableTableColumnDefinition<TeamMember>[] = useMemo(
+      () => [
+        { name: 'Name', key: 'name', type: 'text', required: true },
+        { name: 'Role', key: 'role', type: 'autocomplete', required: true },
+        { name: 'Department', key: 'department', type: 'autocomplete', required: true },
+        { name: 'Manager', key: 'manager', type: 'autocomplete', required: false },
+      ],
+      [],
+    );
+
+    const getValidateHandler: CellActionsHandlerGetter<string | null> = useCallback((_key: string) => {
+      return async ({ value, data }) => {
+        await Promise.resolve(); // Ensure async
+        if ((_key === 'name' || _key === 'role' || _key === 'department') && !value) {
+          return 'Required field';
+        }
+
+        // Can't be your own manager
+        if (_key === 'manager' && value === data.name) {
+          return 'Cannot be your own manager';
+        }
+
+        return null;
+      };
+    }, []);
+
+    const getSaveHandler: CellActionsHandlerGetter<string | null> = useCallback((key: string) => {
+      return async ({ value, data }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as TeamMember) : item)));
+        return null;
+      };
+    }, []);
+
+    // Use table instance to provide context-aware options
+    const getOptionsHandler: CellActionsHandlerGetter<{ label: string; value: unknown }[]> = useCallback(
+      (_key: string) => {
+        return async ({ value, data, table }) => {
+          await Promise.resolve(); // Ensure async
+          const searchTerm = String(value || '').toLowerCase();
+
+          if (_key === 'role') {
+            const allRows = table.getCoreRowModel().rows;
+            const uniqueRoles = new Set(allRows.map((row) => row.original.role).filter(Boolean));
+
+            return Array.from(uniqueRoles)
+              .filter((role) => String(role).toLowerCase().includes(searchTerm))
+              .sort()
+              .map((role) => ({ label: String(role), value: role }));
+          }
+
+          if (_key === 'department') {
+            const allRows = table.getCoreRowModel().rows;
+            const uniqueDepts = new Set(allRows.map((row) => row.original.department).filter(Boolean));
+
+            return Array.from(uniqueDepts)
+              .filter((dept) => String(dept).toLowerCase().includes(searchTerm))
+              .sort()
+              .map((dept) => ({ label: String(dept), value: dept }));
+          }
+
+          if (_key === 'manager') {
+            const allRows = table.getCoreRowModel().rows;
+            // Get all potential managers (excluding self)
+            const potentialManagers = allRows
+              .map((row) => row.original.name)
+              .filter((name) => name !== data.name && String(name).toLowerCase().includes(searchTerm));
+
+            return potentialManagers.sort().map((name) => ({ label: String(name), value: name }));
+          }
+
+          return [];
+        };
+      },
+      [],
+    );
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Using table instance in getOptionsHandler to provide context-aware autocomplete options.
+
+**Dynamic Options from Table Data:**
+- **Role**: Unique roles from all existing team members
+- **Department**: Unique departments from table data
+- **Manager**: All team members except the current person
+
+**Table Instance Methods:**
+- \`table.getCoreRowModel().rows\` - Access all rows
+- \`table.getFilteredRowModel().rows\` - Access filtered rows
+- \`row.original\` - Access row data
+
+**Benefits:**
+- Options automatically update as data changes
+- No need for separate state management
+- Context-aware suggestions
+- Prevents invalid selections (e.g., self as manager)
+
+**Use this pattern when:**
+- Options come from existing table data
+- Need to filter options based on current row
+- Want to ensure data consistency
+- Autocomplete from user-entered values
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 9: Loading State
+// ============================================================================
+
+export const LoadingState = {
+  name: '9. Loading State',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      name: string;
+      sku: string;
+      price: number;
+      stock: number;
+    }
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text' },
+        { name: 'SKU', key: 'sku', type: 'text' },
+        { name: 'Price', key: 'price', type: 'number' },
+        { name: 'Stock', key: 'stock', type: 'number' },
+        { name: 'Category', key: 'category', type: 'text' },
+      ],
+      [],
+    );
 
     return (
       <EditableTable
@@ -525,29 +1165,46 @@ export const LoadingState = {
     docs: {
       description: {
         story: `
-The loading skeleton state displayed while data is being fetched.
+Loading skeleton state displayed while data is being fetched.
 
 **Features:**
-- Animated skeleton rows
-- Matches table structure with proper column widths
+- Animated skeleton rows (shimmer effect)
+- Matches table structure with proper column count
 - Smooth loading animation
 - Maintains layout consistency
+
+**Use case:**
+Show this state while fetching data from API.
         `,
       },
     },
   },
 };
 
-// Empty State
+// ============================================================================
+// Story 10: Empty State
+// ============================================================================
+
 export const EmptyState = {
-  name: 'Empty State',
+  name: '10. Empty State',
   render: () => {
-    const columns: EditableTableColumnDefinition<Product>[] = [
-      { name: 'Name', key: 'name', type: 'text' },
-      { name: 'SKU', key: 'sku', type: 'text' },
-      { name: 'Price', key: 'price', type: 'number' },
-      { name: 'Stock', key: 'stock', type: 'number' },
-    ];
+    interface Product extends Record<string, unknown> {
+      id: string;
+      name: string;
+      sku: string;
+      price: number;
+      stock: number;
+    }
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text' },
+        { name: 'SKU', key: 'sku', type: 'text' },
+        { name: 'Price', key: 'price', type: 'number' },
+        { name: 'Stock', key: 'stock', type: 'number' },
+      ],
+      [],
+    );
 
     return (
       <EditableTable
@@ -566,12 +1223,13 @@ export const EmptyState = {
     docs: {
       description: {
         story: `
-The empty state displayed when no data is available.
+Empty state displayed when no data is available.
 
 **Use Cases:**
 - No data loaded yet
 - All items have been deleted
 - Search/filter returned no results
+- Fresh table with no entries
         `,
       },
     },
