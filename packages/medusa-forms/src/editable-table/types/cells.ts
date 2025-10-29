@@ -147,7 +147,7 @@ export type EditableCellActionHandler<TReturn = unknown> = (args: {
   data: Record<string, unknown>;
   value: unknown;
   table: EditableTableInstance<Record<string, unknown>>;
-}) => Promise<TReturn>;
+}) => Promise<TReturn> | TReturn;
 
 // biome-ignore lint/suspicious/noExplicitAny: It can be any type
 export type CellActionsHandlerGetter<TReturn = any> = (key: string) => EditableCellActionHandler<TReturn> | undefined;
