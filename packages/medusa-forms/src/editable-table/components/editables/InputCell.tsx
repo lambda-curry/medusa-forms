@@ -1,10 +1,18 @@
-import { Input, clx } from '@medusajs/ui';
+import { clx } from '@medusajs/ui';
 import { type ChangeEvent, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useCellState } from '../../hooks/useCellState';
 import type { CellContentProps } from '../../types/cells';
 import { SAVE_DELAY_MS, getCellStatusClassName, getStatusIndicator } from '../../utils/cell-status';
 import { CellStatusIndicator } from '../cells/CellStatusIndicator';
+
+const medusaInputBaseStyles = clx(
+  'caret-ui-fg-base bg-ui-bg-field hover:bg-ui-bg-field-hover shadow-borders-base placeholder-ui-fg-muted text-ui-fg-base transition-fg relative w-full appearance-none rounded-md outline-none',
+  'focus-visible:shadow-borders-interactive-with-active',
+  'disabled:text-ui-fg-disabled disabled:!bg-ui-bg-disabled disabled:placeholder-ui-fg-disabled disabled:cursor-not-allowed',
+  'aria-[invalid=true]:!shadow-borders-error  invalid:!shadow-borders-error',
+  'txt-compact-small !h-7 px-2 py-1',
+);
 
 const VALID_NUMBER_REGEX = /^\d+(\.\d+)?$/;
 
@@ -106,7 +114,7 @@ export const InputCell = ({
   return (
     <div className="flex items-center w-full h-full relative">
       {showLeftIndicator && <CellStatusIndicator status={cellStatus} error={cellState.error} className="left-2 z-10" />}
-      <Input
+      <input
         {...cellProps}
         type={meta.type as 'text' | 'number'}
         defaultValue={defaultValue}
@@ -114,6 +122,7 @@ export const InputCell = ({
         onBlur={onBlurHandler}
         // onKeyDown={onKeyDown}
         className={clx(
+          medusaInputBaseStyles,
           'txt-compact-small size-full outline-none transition-all duration-200',
           'ring-0 focus:ring-0 focus:outline-none shadow-none focus:shadow-none',
           'truncate focus:text-clip',
