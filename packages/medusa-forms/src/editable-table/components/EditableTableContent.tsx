@@ -2,14 +2,14 @@ import { Table, Text, clx } from '@medusajs/ui';
 import { Button } from '@medusajs/ui';
 import { type ColumnDef, type Table as TanStackTable, flexRender } from '@tanstack/react-table';
 import { ArrowDownUp, ArrowDownWideNarrow, ArrowUpWideNarrow } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { getColumnHeaderClassName } from '../columnHelpers';
-import type { EditableTableCellMeta } from '../types/cells';
 import { TooltipColumnHeader } from './TooltipColumnHeader';
 
 interface EditableTableContentProps<T extends Record<string, unknown>> {
   table: TanStackTable<T>;
   className?: string;
-  getTooltipContent?: (columnKey: string, columnName: string) => string | React.ReactNode | null;
+  getTooltipContent?: (columnKey: string, columnName: string) => string | ReactNode | null;
 }
 
 export function EditableTableContent<T extends Record<string, unknown>>({
@@ -129,7 +129,7 @@ export function EditableTableContent<T extends Record<string, unknown>>({
           </Table.Header>
 
           <Table.Body className="border-none">
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows?.length > 0 ? (
               table.getRowModel().rows.map((row, rowIndex) => (
                 <Table.Row
                   key={row.id}
@@ -137,8 +137,6 @@ export function EditableTableContent<T extends Record<string, unknown>>({
                   className="txt-compact-small border-none"
                 >
                   {row.getVisibleCells().map((cell, cellIndex) => {
-                    const columnMeta = cell.column.columnDef.meta as EditableTableCellMeta;
-
                     // Calculate left offset for pinned columns
                     let leftOffset = 0;
                     if (cell.column.getIsPinned() === 'left') {

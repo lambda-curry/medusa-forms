@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Tooltip, clx } from '@medusajs/ui';
+import type { ReactNode } from 'react';
 
 const highlightMatch = (text: string, query: string) => {
   if (!query.trim()) return text;
@@ -10,11 +11,11 @@ const highlightMatch = (text: string, query: string) => {
     <>
       {parts.map((part, index) =>
         part.toLowerCase() === query.toLowerCase() ? (
-          <strong key={index} className="text-foreground">
+          <strong key={`autocomplete-suggestion-part-${index.toString()}`} className="text-foreground">
             {part}
           </strong>
         ) : (
-          <span key={index}>{part}</span>
+          <span key={`autocomplete-suggestion-part-${index.toString()}`}>{part}</span>
         ),
       )}
     </>
@@ -26,7 +27,7 @@ interface AutocompleteSuggestionProps {
   index: number;
   highlightedIndex: number;
   inputValue: string;
-  getTooltipContent?: (suggestion: string) => string | React.ReactNode;
+  getTooltipContent?: (suggestion: string) => string | ReactNode;
   onSelect: (value: string) => void;
   onMouseEnter: (index: number) => void;
 }

@@ -1,11 +1,12 @@
 import { InformationCircleSolid } from '@medusajs/icons';
 import { Tooltip } from '@medusajs/ui';
+import type { ReactNode } from 'react';
 
 interface TooltipColumnHeaderProps {
-  children: React.ReactNode;
+  children: ReactNode;
   columnKey: string;
   columnName: string;
-  getTooltipContent?: (columnKey: string, columnName: string) => string | React.ReactNode | null;
+  getTooltipContent?: (columnKey: string, columnName: string) => string | ReactNode | null;
 }
 
 export const TooltipColumnHeader = ({
