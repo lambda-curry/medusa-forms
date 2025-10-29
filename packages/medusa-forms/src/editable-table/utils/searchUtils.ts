@@ -38,7 +38,7 @@ export function createGlobalFilterFn<T extends Record<string, unknown>>(
               searchableValue = JSON.stringify(calculatedValue);
             }
           }
-        } catch (error) {
+        } catch (_error) {
           // If calculation fails, skip this column
           continue;
         }
@@ -113,7 +113,7 @@ export function extractSearchableValues<T extends Record<string, unknown>>(
         const rawValue = row[columnKey];
         searchableValues[columnKey] = getSearchableText(rawValue);
       }
-    } catch (error) {
+    } catch (_error) {
       searchableValues[columnKey] = '';
     }
   }

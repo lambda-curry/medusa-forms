@@ -115,7 +115,7 @@ export function deserializeColumnFilters(
 
   // Get filters from urlParams (nuqs state only)
   for (const [key, value] of Object.entries(urlParams)) {
-    if (!value || !Array.isArray(value) || value.length === 0) continue;
+    if (!(value && Array.isArray(value)) || value.length === 0) continue;
 
     // Check if this is a cf_* parameter
     if (key.startsWith('cf_')) {

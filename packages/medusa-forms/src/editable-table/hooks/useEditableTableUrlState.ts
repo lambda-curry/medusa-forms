@@ -42,7 +42,7 @@ function createParameterKeys(tableId = '') {
 
 // Serialize sorting to compact format
 function serializeSorting(sorting: SortingState): string {
-  if (!sorting.length) return '';
+  if (sorting.length === 0) return '';
 
   const sort = sorting[0]; // Only single column sorting
   return sort.desc ? `-${sort.id}` : sort.id;

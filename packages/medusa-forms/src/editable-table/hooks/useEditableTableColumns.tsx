@@ -98,8 +98,8 @@ function _createEditableTableColumn<TRowData extends Record<string, unknown>>(
 
 // Create checkbox column for row selection
 function _createCheckboxColumn<T extends Record<string, unknown>>(
-  rowSelection?: Record<string, boolean>,
-  onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void,
+  _rowSelection?: Record<string, boolean>,
+  _onRowSelectionChange?: (rowSelection: Record<string, boolean>) => void,
 ): ColumnDef<T> {
   return {
     id: 'select',
@@ -132,7 +132,7 @@ function _createActionsColumn<T extends Record<string, unknown>>(
   onView?: (item: T) => void,
   onDelete?: (item: T) => void,
 ): ColumnDef<T> | null {
-  if (!onView && !onDelete) return null;
+  if (!(onView || onDelete)) return null;
 
   return {
     id: 'actions',
