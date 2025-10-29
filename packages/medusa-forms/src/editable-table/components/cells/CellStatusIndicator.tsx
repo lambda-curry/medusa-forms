@@ -16,32 +16,38 @@ export const CellStatusIndicator = ({
   let tooltip: string | undefined;
 
   switch (status) {
-    case 'editing':
+    case 'editing': {
       icon = <PencilSquare className="h-4 w-4 text-ui-tag-orange-icon" />;
       tooltip = 'Editing...';
       break;
-    case 'saving':
+    }
+    case 'saving': {
       icon = (
         <div className="h-4 w-4 border-2 border-ui-tag-blue-icon border-t-transparent rounded-full animate-spin" />
       );
       tooltip = 'Saving...';
       break;
-    case 'saved':
+    }
+    case 'saved': {
       icon = <Check className="h-4 w-4 text-ui-tag-green-icon" />;
       tooltip = 'Saved successfully';
       break;
-    case 'error':
+    }
+    case 'error': {
       icon = <ExclamationCircle className="h-4 w-4 text-ui-tag-red-icon" />;
       tooltip = error || 'An error occurred';
       break;
-    case 'disabled':
+    }
+    case 'disabled': {
       icon = <LockClosedSolid className="h-4 w-4 text-ui-tag-neutral-icon" />;
       tooltip = 'Field is disabled';
       break;
-    case 'retry':
+    }
+    case 'retry': {
       icon = <ArrowPath className="h-4 w-4 text-ui-tag-orange-icon" />;
       tooltip = error ? `Retry... ${error}` : 'Retry...';
       break;
+    }
     default:
       icon = null;
   }
