@@ -15,7 +15,7 @@ import { useEditableTableColumns } from './useEditableTableColumns';
 import { useEditableTableUrlState } from './useEditableTableUrlState';
 
 // Main hook for EditableTable functionality
-export function useEditableTable<T extends Record<string, unknown>>(config: EditableTableConfig<T>, tableId?: string) {
+export function useEditableTable<T extends Record<string, unknown>>(config: EditableTableConfig<T>) {
   const {
     data,
     editableColumns,
