@@ -1,8 +1,8 @@
 import { Table, clx } from '@medusajs/ui';
-import { type ReactNode, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useEditableCellActions } from '../hooks/useEditableCellActions';
 import { useEditableTable } from '../hooks/useEditableTable';
-import type { EditableCellActionFn, EditableTableConfig } from '../types/cells';
+import type { CellActionsHandlerGetter, EditableTableConfig } from '../types/cells';
 import { EditableTableContent } from './EditableTableContent';
 import { EditableTableControls } from './EditableTableControls';
 import { TableSkeleton } from './TableSkeleton';
@@ -14,11 +14,9 @@ interface EditableTableProps<T extends Record<string, unknown>> extends Omit<Edi
   showInfo?: boolean;
   className?: string;
   loading?: boolean;
-  getValidateHandler: (key: string) => EditableCellActionFn<Record<string, unknown>, string | null> | undefined;
-  getSaveHandler: (key: string) => EditableCellActionFn<Record<string, unknown>, string | null> | undefined;
-  getOptionsHandler: (
-    key: string,
-  ) => EditableCellActionFn<Record<string, unknown>, { label: string; value: unknown }[]> | undefined;
+  getValidateHandler: CellActionsHandlerGetter<string | null>;
+  getSaveHandler: CellActionsHandlerGetter<string | null>;
+  getOptionsHandler: CellActionsHandlerGetter<{ label: string; value: unknown }[]>;
   // Additional actions to render in table controls
   additionalActions?: ReactNode;
 }
@@ -38,19 +36,11 @@ export function EditableTable<T extends Record<string, unknown>>({
   additionalActions,
   ...inputConfig
 }: EditableTableProps<T>) {
-  const config = useMemo(
-    () => ({
-      ...inputConfig,
-      data,
-    }),
-    [inputConfig, data],
-  );
-
   const getCellActionsFn = useEditableCellActions({ getValidateHandler, getSaveHandler, getOptionsHandler });
 
   const { table } = useEditableTable(
     {
-      ...config,
+      ...inputConfig,
       data,
       getCellActions: getCellActionsFn,
     },
@@ -70,11 +60,11 @@ export function EditableTable<T extends Record<string, unknown>>({
         <EditableTableControls
           table={table}
           columnDefs={inputConfig.editableColumns}
-          showGlobalFilter={config.enableGlobalFilter}
-          showColumnVisibility={config.enableColumnVisibility}
-          showColumnPinning={config.enableColumnPinning}
-          showColumnFilters={config.enableColumnFilters}
-          showSorting={config.enableSorting}
+          showGlobalFilter={inputConfig.enableGlobalFilter}
+          showColumnVisibility={inputConfig.enableColumnVisibility}
+          showColumnPinning={inputConfig.enableColumnPinning}
+          showColumnFilters={inputConfig.enableColumnFilters}
+          showSorting={inputConfig.enableSorting}
           searchDebounceMs={1000}
           additionalActions={additionalActions}
         />

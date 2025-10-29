@@ -1,22 +1,24 @@
 import { useCallback } from 'react';
-import type { EditableCellActionFn, EditableCellActions, GetCellActionsFn } from '../types/cells';
-
-// biome-ignore lint/suspicious/noExplicitAny: It can be any type
-type EditableCellActionsFn<T = any> = (key: string) => EditableCellActionFn<Record<string, unknown>, T> | undefined;
+import type {
+  CellActionsHandlerGetter,
+  EditableCellActionHandler,
+  EditableCellActions,
+  GetCellActionsFn,
+} from '../types/cells';
 
 export const useEditableCellActions = ({
   getValidateHandler,
   getSaveHandler,
   getOptionsHandler,
 }: {
-  getValidateHandler: EditableCellActionsFn<string | null>;
-  getSaveHandler: EditableCellActionsFn<string | null>;
-  getOptionsHandler: EditableCellActionsFn<{ label: string; value: unknown }[]>;
+  getValidateHandler: CellActionsHandlerGetter<string | null>;
+  getSaveHandler: CellActionsHandlerGetter<string | null>;
+  getOptionsHandler: CellActionsHandlerGetter<{ label: string; value: unknown }[]>;
 }): GetCellActionsFn => {
   return useCallback(
     ({ meta, data, table }): EditableCellActions => {
       const validateHandler = getValidateHandler?.(meta.key) || (() => null);
-      const saverHandler: EditableCellActionFn<Record<string, unknown>, string | null> = async (args) => {
+      const saverHandler: EditableCellActionHandler<string | null> = async (args) => {
         const saveHandler = getSaveHandler?.(meta.key);
         const validationError = validateHandler ? await validateHandler(args) : null;
 

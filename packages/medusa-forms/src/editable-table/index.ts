@@ -27,7 +27,8 @@ export type {
   EditableTableConfig,
   EditableTableInstance,
   EditableCellActions,
-  EditableCellActionFn,
+  EditableCellActionHandler,
+  CellActionsHandlerGetter,
   EditableCellActionsMap,
   CellState,
   CellStatus,
@@ -48,4 +49,3 @@ export {
   getSortingFunction,
   getColumnHeaderClassName,
 } from './columnHelpers';
-

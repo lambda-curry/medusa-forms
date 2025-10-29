@@ -143,14 +143,17 @@ export type CellState = {
 
 export type CellStatus = 'editing' | 'saving' | 'saved' | 'error' | 'disabled' | 'retry' | 'idle';
 
-export type EditableCellActionFn<TData extends Record<string, unknown>, TReturn = unknown> = (args: {
+export type EditableCellActionHandler<TReturn = unknown> = (args: {
   meta: EditableTableCellMeta;
-  data: TData;
+  data: Record<string, unknown>;
   value: unknown;
   table: EditableTableInstance<Record<string, unknown>>;
 }) => Promise<TReturn>;
 
+// biome-ignore lint/suspicious/noExplicitAny: It can be any type
+export type CellActionsHandlerGetter<TReturn = any> = (key: string) => EditableCellActionHandler<TReturn> | undefined;
+
 export type EditableCellActionsMap = Partial<{
   // biome-ignore lint/suspicious/noExplicitAny: It can be any type
-  [key: string]: EditableCellActionFn<Record<string, unknown>, any>;
+  [key: string]: EditableCellActionHandler<any>;
 }>;

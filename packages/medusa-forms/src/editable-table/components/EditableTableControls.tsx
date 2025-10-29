@@ -77,6 +77,8 @@ export function EditableTableControls<T extends Record<string, unknown>>({
   }, [table]);
 
   // Initialize input value from table state on mount
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only run on mount
   useEffect(() => {
     if (inputRef.current) {
       const currentGlobalFilter = table.getState().globalFilter || '';
