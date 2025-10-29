@@ -449,8 +449,7 @@ export const CalculatedValuesExample = {
     );
 
     const getValidateHandler = useCallback((_key: string) => {
-      return async ({ value }: { value: unknown }) => {
-        await Promise.resolve(); // Ensure async
+      return ({ value }: { value: unknown }) => {
         if ((_key === 'quantity' || _key === 'price') && Number(value) <= 0) {
           return 'Must be greater than 0';
         }
@@ -559,7 +558,6 @@ export const CrossFieldValidationExample = {
     // Cross-field validation using table instance
     const getValidateHandler: CellActionsHandlerGetter<string | null> = useCallback((_key: string) => {
       return async ({ value, data, table }) => {
-        await Promise.resolve(); // Ensure async
         if (!value || String(value).trim() === '') {
           return 'Required field';
         }
@@ -721,8 +719,7 @@ export const DynamicColumnsExample = {
     const columns = useStockColumnsDefinition();
 
     const getValidateHandler = useCallback((_key: string) => {
-      return async ({ value }: { value: unknown }) => {
-        await Promise.resolve(); // Ensure async
+      return ({ value }: { value: unknown }) => {
         if (_key.startsWith('location_') && Number(value) < 0) {
           return 'Stock cannot be negative';
         }
@@ -914,8 +911,7 @@ export const DynamicColumnFiltersExample = {
     );
 
     const getValidateHandler = useCallback((_key: string) => {
-      return async ({ value }: { value: unknown }) => {
-        await Promise.resolve(); // Ensure async
+      return ({ value }: { value: unknown }) => {
         if (_key.startsWith('region_') && Number(value) < 0) {
           return 'Stock cannot be negative';
         }
@@ -1023,7 +1019,7 @@ export const TableInstanceOptionsExample = {
 
     const getValidateHandler: CellActionsHandlerGetter<string | null> = useCallback((_key: string) => {
       return async ({ value, data }) => {
-        await Promise.resolve(); // Ensure async
+        await Promise.resolve();
         if ((_key === 'name' || _key === 'role' || _key === 'department') && !value) {
           return 'Required field';
         }
@@ -1049,7 +1045,6 @@ export const TableInstanceOptionsExample = {
     const getOptionsHandler: CellActionsHandlerGetter<{ label: string; value: unknown }[]> = useCallback(
       (_key: string) => {
         return async ({ value, data, table }) => {
-          await Promise.resolve(); // Ensure async
           const searchTerm = String(value || '').toLowerCase();
 
           if (_key === 'role') {
