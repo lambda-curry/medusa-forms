@@ -202,7 +202,6 @@ export const ZodValidationExample = {
       (_key: string) => {
         return ({ value }: { value: unknown }) => {
           const schema = schemas[_key as keyof typeof schemas];
-          alert(`validate ${_key} ${value}`);
           if (!schema) return null;
 
           const result = schema.safeParse(value);
@@ -429,14 +428,20 @@ export const CalculatedValuesExample = {
             const quantity = Number(data.quantity) || 0;
             const price = Number(data.price) || 0;
             const total = quantity * price;
-            return `$${total.toFixed(2)}`;
+            return {
+              status: 'active',
+              title: `$${total.toFixed(2)}`,
+            };
           },
         },
         {
           name: 'Status',
           key: 'status',
           type: 'badge',
-          calculateValue: (_key, data) => data.status,
+          calculateValue: (_key, data) => ({
+            status: data.status === 'delivered' ? 'inactive' : 'active',
+            title: String(data.status),
+          }),
         },
       ],
       [],
@@ -540,9 +545,9 @@ export const CrossFieldValidationExample = {
           calculateValue: (_key, data) => {
             const current = Number(data.current_stock) || 0;
             const min = Number(data.min_stock) || 0;
-            if (current < min) return 'Low Stock';
-            if (current < min * 1.5) return 'Warning';
-            return 'Good';
+            if (current < min) return { status: 'inactive', title: 'Low Stock' };
+            if (current < min * 1.5) return { status: 'warning', title: 'Warning' };
+            return { status: 'active', title: 'Good' };
           },
         },
       ],
