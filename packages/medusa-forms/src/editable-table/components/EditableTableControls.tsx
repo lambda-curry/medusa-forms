@@ -96,16 +96,16 @@ export function EditableTableControls<T extends Record<string, unknown>>({
   };
 
   // Early return if no controls are enabled
-  if (
-    !showGlobalFilter &&
-    !showColumnVisibility &&
-    !showColumnPinning &&
-    !showColumnFilters &&
-    !showSorting &&
-    !additionalActions
-  ) {
-    return null;
-  }
+  const hasControls = [
+    showGlobalFilter,
+    showColumnVisibility,
+    showColumnPinning,
+    showColumnFilters,
+    showSorting,
+    additionalActions,
+  ].some(Boolean);
+
+  if (!hasControls) return null;
 
   return (
     <div className={clx('flex flex-col gap-2 border-b border-ui-border-base', className)}>
