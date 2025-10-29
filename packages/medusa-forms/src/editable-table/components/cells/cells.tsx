@@ -31,9 +31,10 @@ const BadgeCell = ({ value }: CellContentProps<BadgeCellValue | undefined>) => {
   const colorMap: { [key: string]: ComponentProps<typeof StatusBadge>['color'] } = {
     active: 'green',
     inactive: 'red',
+    warning: 'orange',
   };
 
-  const color = value.status === 'active' ? colorMap[value.status] : colorMap.inactive;
+  const color = colorMap[value.status] ?? colorMap.inactive;
 
   return (
     <div className="flex flex-wrap gap-1">
