@@ -1,10 +1,12 @@
 import { Input, clx } from '@medusajs/ui';
-import { useCallback } from 'react';
+import { type ChangeEvent, useCallback } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import { useCellState } from '../../hooks/useCellState';
 import type { CellContentProps } from '../../types/cells';
 import { SAVE_DELAY_MS, getCellStatusClassName, getStatusIndicator } from '../../utils/cell-status';
 import { CellStatusIndicator } from '../cells/CellStatusIndicator';
+
+const VALID_NUMBER_REGEX = /^\d+(\.\d+)?$/;
 
 function isValidNumberInput(value: string): boolean {
   if (!value || value.trim() === '') return false;
@@ -14,7 +16,7 @@ function isValidNumberInput(value: string): boolean {
   // \d+      - one or more digits (handles whole numbers like "0", "123")
   // (\.\d+)? - optional group: dot followed by one or more digits (handles ".5", ".123")
   // $        - end of string
-  return /^\d+(\.\d+)?$/.test(value.trim());
+  return VALID_NUMBER_REGEX.test(value.trim());
 }
 
 export const InputCell = ({
@@ -32,7 +34,7 @@ export const InputCell = ({
   );
 
   const _save = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: ChangeEvent<HTMLInputElement>) => {
       cellState.setIsEditing(false);
 
       if (meta.type === 'number' && !isValidNumberInput(e.target.value)) {
@@ -52,13 +54,13 @@ export const InputCell = ({
       cellState.setError(error);
       cellState.setIsSaving(false);
     },
-    [actions, cellState, meta.key],
+    [actions, cellState, meta.type],
   );
 
   const debouncedSave = useDebouncedCallback(_save, SAVE_DELAY_MS);
 
   const onChangeHandler = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: ChangeEvent<HTMLInputElement>) => {
       if (!hasValueChanged(e.target.value)) {
         cellState.setIsSaving(false);
         return;
@@ -70,10 +72,10 @@ export const InputCell = ({
 
       await debouncedSave(e);
     },
-    [debouncedSave, cellState],
+    [debouncedSave, cellState, hasValueChanged],
   );
   const onBlurHandler = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: ChangeEvent<HTMLInputElement>) => {
       if (!hasValueChanged(e.target.value)) {
         cellState.setIsSaving(false);
         return;
@@ -86,10 +88,8 @@ export const InputCell = ({
       debouncedSave.cancel();
       await _save(e);
     },
-    [debouncedSave, _save, cellState],
+    [debouncedSave, _save, cellState, hasValueChanged],
   );
-
-  const isSavePending = debouncedSave.isPending();
 
   const cellStatus = getStatusIndicator({
     isEditing: cellState.isEditing,
