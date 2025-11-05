@@ -1,4 +1,4 @@
-import { Badge, Button, Container, Text } from '@medusajs/ui';
+import { Button, Container, Text } from '@medusajs/ui';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
 interface ErrorStateProps {
@@ -11,14 +11,6 @@ interface ErrorStateProps {
 export const ErrorState = ({ title, message, onRetry, showRetry = true }: ErrorStateProps) => {
   return (
     <div className="flex flex-col gap-4 bg-transparent">
-      <div className="flex items-center justify-between px-0 lg:px-0 p-4 bg-transparent">
-        <div className="flex items-center gap-3 rounded-full bg-ui-bg-base">
-          <Badge rounded="full" className="bg-ui-bg-base text-ui-fg-base">
-            <Text weight="plus"> Items (0)</Text>
-          </Badge>
-        </div>
-      </div>
-
       <Container className="divide-y p-0">
         <div className="flex flex-col items-center justify-center py-12 px-4">
           <div className="flex flex-col items-center justify-center text-center max-w-md">
