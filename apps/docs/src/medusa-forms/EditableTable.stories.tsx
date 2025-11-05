@@ -1,6 +1,6 @@
 import { EditableTable } from '@lambdacurry/medusa-forms/editable-table';
 import type { CellActionsHandlerGetter, EditableTableColumnDefinition } from '@lambdacurry/medusa-forms/editable-table';
-import { Toaster, TooltipProvider } from '@medusajs/ui';
+import { Button, Toaster, TooltipProvider } from '@medusajs/ui';
 import type { Meta } from '@storybook/react-vite';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NuqsAdapter } from 'nuqs/adapters/react';
@@ -22,8 +22,7 @@ A powerful, feature-rich table component with inline editing capabilities for ta
 - **Real-time Validation**: Immediate feedback with Zod schema validation
 - **Auto-save**: Debounced saving with visual status indicators
 - **URL State Persistence**: Table state (search, sort, pagination) persists in URL
-- **Column Sorting**: Click column headers to sort data (ascending → descending → unsorted)
-- **Column Filtering**: Filter data by column values with visual chips
+- **Column Management**: Sorting, filtering, pinning, and resizing
 - **Multiple Cell Types**: Text, number, autocomplete, badge
 - **Performance Optimized**: Handles large datasets efficiently
         `,
@@ -85,9 +84,9 @@ export const SimpleValidationExample = {
 
     const columns: EditableTableColumnDefinition<SimpleProduct>[] = useMemo(
       () => [
-        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
-        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 }, enableSorting: true },
-        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
+        { name: 'Product Name', key: 'name', type: 'text', required: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 } },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 } },
       ],
       [],
     );
@@ -138,19 +137,13 @@ export const SimpleValidationExample = {
     docs: {
       description: {
         story: `
-The simplest EditableTable implementation with basic inline validation and column sorting.
+The simplest EditableTable implementation with basic inline validation.
 
 **Key Features:**
 - Synchronous inline validation functions
 - Simple length and numeric checks (name min 2 chars, price/stock positive)
 - Direct state updates with 300ms simulated save delay
-- **Column sorting** - Click column headers to sort (ascending → descending → unsorted)
 - No external dependencies (no Zod, no async validation)
-
-**Sorting:**
-- All columns have \`enableSorting: true\`
-- Click any column header to toggle sort direction
-- Visual indicators show current sort state
 
 **Use this pattern when:**
 - You have simple validation rules
@@ -960,7 +953,7 @@ export const DynamicColumnFiltersExample = {
     docs: {
       description: {
         story: `
-Dynamic column filters for grouping similar columns under a single URL parameter, with column sorting.
+Dynamic column filters for grouping similar columns under a single URL parameter.
 
 **Filter Categories:**
 - Out of Stock (0 units)
@@ -972,7 +965,6 @@ Dynamic column filters for grouping similar columns under a single URL parameter
 - \`calculateFilterValue\` converts numeric values to filterable categories
 - \`dynamicColumnFilters\` groups region columns: ['region_*']
 - Clean URL format: \`?cf_region=region_east:Low,region_west:High\`
-- **Column sorting** on SKU and Product columns - click headers to sort
 - Works with async-loaded columns
 - 300ms simulated save delay
 
@@ -1247,6 +1239,253 @@ Empty state displayed when no data is available.
 - All items have been deleted
 - Search/filter returned no results
 - Fresh table with no entries
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 11: Row Selection
+// ============================================================================
+
+export const RowSelectionExample = {
+  name: '11. Row Selection',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
+
+    const [data, setData] = useState<Product[]>([
+      { id: '1', name: 'Laptop', price: 999, stock: 15 },
+      { id: '2', name: 'Mouse', price: 29, stock: 50 },
+      { id: '3', name: 'Keyboard', price: 79, stock: 30 },
+    ]);
+
+    const [rowSelection, setRowSelection] = useState<Record<string, boolean>>({});
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 }, enableSorting: true },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return ({ value }: { value: unknown }) => {
+        if (_key === 'name' && (!value || String(value).length < 2)) {
+          return 'Name must be at least 2 characters';
+        }
+        if ((_key === 'price' || _key === 'stock') && Number(value) < 0) {
+          return 'Must be a positive number';
+        }
+        return Promise.resolve(null);
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    const selectedCount = Object.keys(rowSelection).filter((id) => rowSelection[id]).length;
+    const selectedIds = Object.keys(rowSelection).filter((id) => rowSelection[id]);
+
+    const handleBulkDelete = useCallback(() => {
+      const selectedProducts = data.filter((product) => selectedIds.includes(product.id));
+      const productNames = selectedProducts.map((p) => p.name).join(', ');
+
+      if (
+        confirm(
+          `Are you sure you want to delete ${selectedCount} ${selectedCount === 1 ? 'product' : 'products'}?\n\n${productNames}`,
+        )
+      ) {
+        setData((prev) => prev.filter((product) => !selectedIds.includes(product.id)));
+        setRowSelection({});
+      }
+    }, [selectedIds, selectedCount, data]);
+
+    return (
+      <div className="space-y-4">
+        {selectedCount > 0 && (
+          <div className="rounded-lg border border-ui-border-base bg-ui-bg-base p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-ui-fg-subtle text-sm">
+                {selectedCount} {selectedCount === 1 ? 'row' : 'rows'} selected
+              </p>
+              <Button variant="danger" size="small" onClick={handleBulkDelete}>
+                Delete Selected
+              </Button>
+            </div>
+          </div>
+        )}
+        <EditableTable
+          data={data}
+          editableColumns={columns}
+          getValidateHandler={getValidateHandler}
+          getSaveHandler={getSaveHandler}
+          getOptionsHandler={getOptionsHandler}
+          enableRowSelection={true}
+          rowSelection={rowSelection}
+          onRowSelectionChange={setRowSelection}
+          enableGlobalFilter={true}
+          enableSorting={true}
+          showControls={true}
+          showPagination={false}
+        />
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Row selection enables users to select individual rows or all rows using checkboxes, with support for bulk operations.
+
+**Features:**
+- **Checkbox Column**: Appears on the left for selecting rows
+- **Select All**: Header checkbox selects/deselects all rows on current page
+- **Selection State**: Managed via \`rowSelection\` prop (object mapping row IDs to boolean)
+- **Bulk Actions Bar**: Appears when rows are selected, showing count and action buttons
+- **Bulk Delete**: Delete multiple selected rows at once with confirmation
+
+**Key Props:**
+- \`enableRowSelection={true}\` - Enables the checkbox column
+- \`rowSelection\` - State object: \`{ [rowId]: boolean }\`
+- \`onRowSelectionChange\` - Callback when selection changes
+
+**Bulk Operations Pattern:**
+- Get selected IDs: \`Object.keys(rowSelection).filter(id => rowSelection[id])\`
+- Filter data by selected IDs to get selected items
+- Perform operations on selected items (delete, update, export, etc.)
+- Clear selection after operation: \`setRowSelection({})\`
+
+**Use Cases:**
+- Bulk delete operations
+- Bulk status updates
+- Export selected data
+- Multi-select workflows
+- Row management interfaces
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 12: Actions Column
+// ============================================================================
+
+export const ActionsColumnExample = {
+  name: '12. Actions Column',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
+
+    const [data, setData] = useState<Product[]>([
+      { id: '1', name: 'Laptop', price: 999, stock: 15 },
+      { id: '2', name: 'Mouse', price: 29, stock: 50 },
+      { id: '3', name: 'Keyboard', price: 79, stock: 30 },
+    ]);
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 }, enableSorting: true },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return ({ value }: { value: unknown }) => {
+        if (_key === 'name' && (!value || String(value).length < 2)) {
+          return 'Name must be at least 2 characters';
+        }
+        if ((_key === 'price' || _key === 'stock') && Number(value) < 0) {
+          return 'Must be a positive number';
+        }
+        return Promise.resolve(null);
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    const handleView = useCallback((item: Product) => {
+      alert(`Viewing: ${item.name}\nPrice: $${item.price}\nStock: ${item.stock}`);
+    }, []);
+
+    const handleDelete = useCallback((item: Product) => {
+      if (confirm(`Are you sure you want to delete "${item.name}"?`)) {
+        setData((prev) => prev.filter((product) => product.id !== item.id));
+      }
+    }, []);
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        onView={handleView}
+        onDelete={handleDelete}
+        enableGlobalFilter={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Actions column provides a dropdown menu (⋯) with row-specific actions like view and delete.
+
+**Features:**
+- **Actions Column**: Dropdown menu appears on the right side of each row
+- **View Action**: Opens a detail view (in this example, shows an alert)
+- **Delete Action**: Removes the row after confirmation
+- **Icons**: Uses Eye icon for view, Trash icon for delete
+
+**Key Props:**
+- \`onView\` - Handler called when view action is clicked (receives row data)
+- \`onDelete\` - Handler called when delete action is clicked (receives row data)
+
+**Use Cases:**
+- Quick row actions (view, edit, delete)
+- Navigation to detail pages
+- Row management operations
+- Context menu for row-specific actions
+
+**Note:** Actions column only appears when at least one of \`onView\` or \`onDelete\` is provided.
         `,
       },
     },
