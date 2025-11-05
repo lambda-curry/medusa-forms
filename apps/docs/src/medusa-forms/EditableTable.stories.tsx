@@ -1491,3 +1491,178 @@ Actions column provides a dropdown menu (⋯) with row-specific actions like vie
     },
   },
 };
+
+// ============================================================================
+// Story 13: Custom Column Sizes
+// ============================================================================
+
+export const CustomColumnSizesExample = {
+  name: '13. Custom Column Sizes',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      sku: string;
+      name: string;
+      description: string;
+      price: number;
+      stock: number;
+      category: string;
+    }
+
+    const [data, setData] = useState<Product[]>([
+      {
+        id: '1',
+        sku: 'PROD-001',
+        name: 'Gaming Laptop',
+        description: 'High-performance laptop for gaming and professional work',
+        price: 1299.99,
+        stock: 15,
+        category: 'Electronics',
+      },
+      {
+        id: '2',
+        sku: 'PROD-002',
+        name: 'Wireless Mouse',
+        description: 'Ergonomic wireless mouse with long battery life',
+        price: 29.99,
+        stock: 50,
+        category: 'Accessories',
+      },
+      {
+        id: '3',
+        sku: 'PROD-003',
+        name: 'Mechanical Keyboard',
+        description: 'RGB mechanical keyboard with customizable keys',
+        price: 149.99,
+        stock: 30,
+        category: 'Accessories',
+      },
+    ]);
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        // Custom narrow width for SKU (number type defaults to 120px, but we override)
+        { name: 'SKU', key: 'sku', type: 'text', minWidth: 100, maxWidth: 150, enableSorting: true },
+        // Default width (text type defaults to 200px via getDefaultColumnSizing)
+        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
+        // Custom wide width for description
+        { name: 'Description', key: 'description', type: 'text', minWidth: 300, maxWidth: 500, enableSorting: true },
+        // Custom width for price (number type defaults to 120px, but we make it wider)
+        {
+          name: 'Price',
+          key: 'price',
+          type: 'number',
+          minWidth: 140,
+          maxWidth: 180,
+          cellProps: { min: 0, step: 0.01 },
+          enableSorting: true,
+        },
+        // Default width for stock (number type defaults to 120px)
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
+        // Custom width for category (text type defaults to 200px, but we make it narrower)
+        { name: 'Category', key: 'category', type: 'text', minWidth: 150, maxWidth: 200, enableSorting: true },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return ({ value }: { value: unknown }) => {
+        if ((_key === 'name' || _key === 'sku') && (!value || String(value).trim() === '')) {
+          return 'This field is required';
+        }
+        if ((_key === 'price' || _key === 'stock') && Number(value) < 0) {
+          return 'Must be a positive number';
+        }
+        return Promise.resolve(null);
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded-lg border border-ui-border-base bg-ui-bg-base p-4">
+          <p className="text-ui-fg-subtle text-sm mb-2">
+            <strong>Column Sizing Examples:</strong>
+          </p>
+          <ul className="text-ui-fg-subtle text-sm space-y-1 list-disc list-inside">
+            <li>
+              <strong>SKU:</strong> Custom narrow (100-150px) - narrower than default text width (200px)
+            </li>
+            <li>
+              <strong>Product Name:</strong> Default width (200px) - uses getDefaultColumnSizing('text')
+            </li>
+            <li>
+              <strong>Description:</strong> Custom wide (300-500px) - wider for long text content
+            </li>
+            <li>
+              <strong>Price:</strong> Custom width (140-180px) - wider than default number width (120px)
+            </li>
+            <li>
+              <strong>Stock:</strong> Default width (120px) - uses getDefaultColumnSizing('number')
+            </li>
+            <li>
+              <strong>Category:</strong> Custom width (150-200px) - narrower than default text width
+            </li>
+          </ul>
+        </div>
+        <EditableTable
+          data={data}
+          editableColumns={columns}
+          getValidateHandler={getValidateHandler}
+          getSaveHandler={getSaveHandler}
+          getOptionsHandler={getOptionsHandler}
+          enableGlobalFilter={true}
+          enableSorting={true}
+          showControls={true}
+          showPagination={false}
+        />
+      </div>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Custom column sizing allows you to control the width of table columns for optimal layout and readability.
+
+**Features:**
+- **Default Sizing**: Uses \`getDefaultColumnSizing(type)\` when \`minWidth\` is not specified
+  - Number columns: 120px
+  - Badge columns: 100px
+  - Select/Autocomplete columns: 180px
+  - Text columns: 200px
+- **Custom minWidth**: Set minimum column width
+- **Custom maxWidth**: Set maximum column width (defaults to max of minWidth and 380px)
+- **Flexible Layout**: Columns adapt to content while respecting size constraints
+
+**Key Props:**
+- \`minWidth?: number\` - Minimum column width in pixels
+- \`maxWidth?: number\` - Maximum column width in pixels
+- If \`minWidth\` is not provided, uses \`getDefaultColumnSizing(columnDef.type)\`
+
+**Use Cases:**
+- Narrow columns for short data (IDs, codes, status badges)
+- Wide columns for long text content (descriptions, notes)
+- Consistent sizing across similar column types
+- Responsive layouts that adapt to content
+
+**Implementation Notes:**
+- Default sizes are provided via \`getDefaultColumnSizing()\` function
+- \`maxSize\` is calculated as: \`Math.max(maxWidth || 0, Math.max(minSize, 380))\`
+- Columns can expand beyond minWidth if content requires it, up to maxWidth
+        `,
+      },
+    },
+  },
+};
