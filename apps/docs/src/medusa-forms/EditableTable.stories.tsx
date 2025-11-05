@@ -1,4 +1,4 @@
-import { EditableTable } from '@lambdacurry/medusa-forms/editable-table';
+import { EditableTable, ErrorState } from '@lambdacurry/medusa-forms/editable-table';
 import type { CellActionsHandlerGetter, EditableTableColumnDefinition } from '@lambdacurry/medusa-forms/editable-table';
 import { Button, Toaster, TooltipProvider } from '@medusajs/ui';
 import type { Meta } from '@storybook/react-vite';
@@ -1661,6 +1661,145 @@ Custom column sizing allows you to control the width of table columns for optima
 - Default sizes are provided via \`getDefaultColumnSizing()\` function
 - \`maxSize\` is calculated as: \`Math.max(maxWidth || 0, Math.max(minSize, 380))\`
 - Columns can expand beyond minWidth if content requires it, up to maxWidth
+        `,
+      },
+    },
+  },
+};
+
+// ============================================================================
+// Story 14: Error State
+// ============================================================================
+
+export const ErrorStateExample = {
+  name: '14. Error State',
+  render: () => {
+    interface Product extends Record<string, unknown> {
+      id: string;
+      name: string;
+      price: number;
+      stock: number;
+    }
+
+    const [hasError, setHasError] = useState(true);
+
+    const handleRetry = useCallback(() => {
+      setHasError(false);
+      // In a real app, you would retry fetching data here
+      setTimeout(() => {
+        setHasError(true);
+      }, 2000);
+    }, []);
+
+    const [data, setData] = useState<Product[]>([
+      { id: '1', name: 'Laptop', price: 999, stock: 15 },
+      { id: '2', name: 'Mouse', price: 29, stock: 50 },
+      { id: '3', name: 'Keyboard', price: 79, stock: 30 },
+    ]);
+
+    const columns: EditableTableColumnDefinition<Product>[] = useMemo(
+      () => [
+        { name: 'Product Name', key: 'name', type: 'text', required: true, enableSorting: true },
+        { name: 'Price', key: 'price', type: 'number', cellProps: { min: 0, step: 0.01 }, enableSorting: true },
+        { name: 'Stock', key: 'stock', type: 'number', cellProps: { min: 0 }, enableSorting: true },
+      ],
+      [],
+    );
+
+    const getValidateHandler = useCallback((_key: string) => {
+      return ({ value }: { value: unknown }) => {
+        if (_key === 'name' && (!value || String(value).length < 2)) {
+          return 'Name must be at least 2 characters';
+        }
+        if ((_key === 'price' || _key === 'stock') && Number(value) < 0) {
+          return 'Must be a positive number';
+        }
+        return Promise.resolve(null);
+      };
+    }, []);
+
+    const getSaveHandler = useCallback((key: string) => {
+      return async ({ value, data }: { value: unknown; data: Record<string, unknown> }) => {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        setData((prev) => prev.map((item) => (item.id === data.id ? ({ ...item, [key]: value } as Product) : item)));
+        return null;
+      };
+    }, []);
+
+    const getOptionsHandler = useCallback(() => {
+      return async () => [];
+    }, []);
+
+    // Show error state when there's an error
+    if (hasError) {
+      return (
+        <ErrorState
+          title="Failed to load products"
+          message="We encountered an error while loading the product data. Please try again or contact support if the problem persists."
+          onRetry={handleRetry}
+          showRetry={true}
+        />
+      );
+    }
+
+    return (
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        enableGlobalFilter={true}
+        enableSorting={true}
+        showControls={true}
+        showPagination={false}
+      />
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: `
+Error state displayed when data loading fails or an error occurs.
+
+**Features:**
+- **Error Icon**: Alert circle icon indicating an error
+- **Error Message**: Clear, user-friendly error message
+- **Retry Button**: Allows users to retry the failed operation
+- **Customizable**: Title, message, and retry handler can be customized
+
+**ErrorState Component Props:**
+- \`title: string\` - Error title/heading
+- \`message: string\` - Detailed error message
+- \`onRetry?: () => void\` - Handler for retry button click
+- \`showRetry?: boolean\` - Show/hide retry button (default: true)
+
+**Use Cases:**
+- API request failures
+- Network errors
+- Data loading errors
+- Permission errors
+- Server errors
+
+**Implementation Pattern:**
+\`\`\`tsx
+if (error) {
+  return (
+    <ErrorState
+      title="Failed to load data"
+      message="We encountered an error while loading the data."
+      onRetry={handleRetry}
+      showRetry={true}
+    />
+  );
+}
+\`\`\`
+
+**Best Practices:**
+- Provide clear, actionable error messages
+- Always include a retry option when the error is recoverable
+- Use appropriate error messages for different error types
+- Consider logging errors for debugging
         `,
       },
     },
