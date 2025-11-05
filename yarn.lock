@@ -1670,12 +1670,29 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@lambdacurry/medusa-forms@npm:*, @lambdacurry/medusa-forms@workspace:packages/medusa-forms":
+"@lambdacurry/medusa-forms@npm:*":
+  version: 0.2.8
+  resolution: "@lambdacurry/medusa-forms@npm:0.2.8"
+  dependencies:
+    "@hookform/error-message": "npm:^2.0.1"
+  peerDependencies:
+    "@medusajs/ui": ^4.0.0
+    react: ^18.3.0 || ^19.0.0
+    react-hook-form: ^7.49.0
+  checksum: 10c0/e6c41a8c91a69a578e7ea66d24f4eb319caa3dab43ea676746edb12f79f0fd5a9be1341315067ae152ff95089a44d967358c2f094e2a291249f9782fcc5f0a9f
+  languageName: node
+  linkType: hard
+
+"@lambdacurry/medusa-forms@workspace:packages/medusa-forms":
   version: 0.0.0-use.local
   resolution: "@lambdacurry/medusa-forms@workspace:packages/medusa-forms"
   dependencies:
     "@hookform/error-message": "npm:^2.0.1"
+    "@medusajs/icons": "npm:^2.0.0"
     "@medusajs/ui": "npm:^4.0.0"
+    "@tanstack/react-query": "npm:^5.62.15"
+    "@tanstack/react-table": "npm:^8.21.3"
+    "@tanstack/react-virtual": "npm:^3.8.3"
     "@types/glob": "npm:^8.1.0"
     "@types/react": "npm:^19.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^6.21.0"
@@ -1683,17 +1700,26 @@ __metadata:
     "@vitejs/plugin-react": "npm:^4.3.4"
     autoprefixer: "npm:^10.4.20"
     glob: "npm:^11.0.0"
+    lucide-react: "npm:^0.469.0"
+    nuqs: "npm:^2.6.0"
     react: "npm:^19.0.0"
     react-hook-form: "npm:^7.49.0"
     tailwindcss: "npm:^4.0.0"
     typescript: "npm:^5.7.2"
+    use-debounce: "npm:^10.0.4"
     vite: "npm:^5.4.11"
     vite-plugin-dts: "npm:^4.4.0"
     vite-tsconfig-paths: "npm:^5.1.4"
   peerDependencies:
+    "@medusajs/icons": ^2.0.0
     "@medusajs/ui": ^4.0.0
+    "@tanstack/react-query": ^5.0.0
+    "@tanstack/react-table": ^8.20.0
+    lucide-react: ^0.263.0
+    nuqs: ^2.6.0
     react: ^18.3.0 || ^19.0.0
     react-hook-form: ^7.49.0
+    use-debounce: ^10.0.0
   languageName: unknown
   linkType: soft
 
@@ -1741,6 +1767,15 @@ __metadata:
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
   checksum: 10c0/4c16b1f285391e7de8bcf4862993a4cccd88a375524def9f04ffe3f37397de1f3a53df6c6d282c38afe8ce940c0870d663a0ec7566789d5cb0eddd616a61bea2
+  languageName: node
+  linkType: hard
+
+"@medusajs/icons@npm:^2.0.0":
+  version: 2.11.1
+  resolution: "@medusajs/icons@npm:2.11.1"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0 || ^19.0.0-rc
+  checksum: 10c0/1464d49350d280eeb1e992f35f1dcdbe55c26e304c6ec7a16ebba613f09d099b8d0343f9f6385fb0c8101ba7b372f9cddc7ddad9e6b7bbdbdfe89b993c510687
   languageName: node
   linkType: hard
 
@@ -4924,6 +4959,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@standard-schema/spec@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@standard-schema/spec@npm:1.0.0"
+  checksum: 10c0/a1ab9a8bdc09b5b47aa8365d0e0ec40cc2df6437be02853696a0e377321653b0d3ac6f079a8c67d5ddbe9821025584b1fb71d9cc041a6666a96f1fadf2ece15f
+  languageName: node
+  linkType: hard
+
 "@storybook/addon-docs@npm:^9.0.6":
   version: 9.0.6
   resolution: "@storybook/addon-docs@npm:9.0.6"
@@ -5461,6 +5503,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:5.90.5":
+  version: 5.90.5
+  resolution: "@tanstack/query-core@npm:5.90.5"
+  checksum: 10c0/3b9460cc10d494357a30ddd3138f2a831611d14b5b8ce3587daa17a078d63945fcdf419864d9dc8e1249aa89b512003d2f134977c64ceccdbdfdd79f1f7e0a34
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^5.62.15":
+  version: 5.90.5
+  resolution: "@tanstack/react-query@npm:5.90.5"
+  dependencies:
+    "@tanstack/query-core": "npm:5.90.5"
+  peerDependencies:
+    react: ^18 || ^19
+  checksum: 10c0/b2450259e40afc2aec5e455414f204c511ec98ebbbd25963316ab72b25758722ee424ed51210bd6863f78f03ae414e18571879f9d70a022e11049f3f04ef5ce2
+  languageName: node
+  linkType: hard
+
 "@tanstack/react-table@npm:8.20.5":
   version: 8.20.5
   resolution: "@tanstack/react-table@npm:8.20.5"
@@ -5473,10 +5533,48 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/react-table@npm:^8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/react-table@npm:8.21.3"
+  dependencies:
+    "@tanstack/table-core": "npm:8.21.3"
+  peerDependencies:
+    react: ">=16.8"
+    react-dom: ">=16.8"
+  checksum: 10c0/85d1d0fcb690ecc011f68a5a61c96f82142e31a0270dcf9cbc699a6f36715b1653fe6ff1518302a6d08b7093351fc4cabefd055a7db3cd8ac01e068956b0f944
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-virtual@npm:^3.8.3":
+  version: 3.13.12
+  resolution: "@tanstack/react-virtual@npm:3.13.12"
+  dependencies:
+    "@tanstack/virtual-core": "npm:3.13.12"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/0eda3d5691ec3bf93a1cdaa955f4972c7aa9a5026179622824bb52ff8c47e59ee4634208e52d77f43ffb3ce435ee39a0899d6a81f6316918ce89d68122490371
+  languageName: node
+  linkType: hard
+
 "@tanstack/table-core@npm:8.20.5":
   version: 8.20.5
   resolution: "@tanstack/table-core@npm:8.20.5"
   checksum: 10c0/3c27b5debd61b6bd9bfbb40bfc7c5d5af90873ae1a566b20e3bf2d2f4f2e9a78061c081aacc5259a00e256f8df506ec250eb5472f5c01ff04baf9918b554982b
+  languageName: node
+  linkType: hard
+
+"@tanstack/table-core@npm:8.21.3":
+  version: 8.21.3
+  resolution: "@tanstack/table-core@npm:8.21.3"
+  checksum: 10c0/40e3560e6d55e07cc047024aa7f83bd47a9323d21920d4adabba8071fd2d21230c48460b26cedf392588f8265b9edc133abb1b0d6d0adf4dae0970032900a8c9
+  languageName: node
+  linkType: hard
+
+"@tanstack/virtual-core@npm:3.13.12":
+  version: 3.13.12
+  resolution: "@tanstack/virtual-core@npm:3.13.12"
+  checksum: 10c0/483f38761b73db05c181c10181f0781c1051be3350ae5c378e65057e5f1fdd6606e06e17dbaad8a5e36c04b208ea1a1344cacd4eca0dcde60f335cf398e4d698
   languageName: node
   linkType: hard
 
@@ -9931,6 +10029,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^0.469.0":
+  version: 0.469.0
+  resolution: "lucide-react@npm:0.469.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/0ee78d110550579b848a01446a440f733fd17e1bf1850aa01551b61f415e03e5f5ab7f26b56f1c648edc93856177f5476ff9f8f6f5d80e8fe45913d208f49961
+  languageName: node
+  linkType: hard
+
 "lz-string@npm:^1.5.0":
   version: 1.5.0
   resolution: "lz-string@npm:1.5.0"
@@ -10358,6 +10465,33 @@ __metadata:
   dependencies:
     path-key: "npm:^3.0.0"
   checksum: 10c0/6f9353a95288f8455cf64cbeb707b28826a7f29690244c1e4bb61ec573256e021b6ad6651b394eb1ccfd00d6ec50147253aba2c5fe58a57ceb111fad62c519ac
+  languageName: node
+  linkType: hard
+
+"nuqs@npm:^2.6.0":
+  version: 2.7.2
+  resolution: "nuqs@npm:2.7.2"
+  dependencies:
+    "@standard-schema/spec": "npm:1.0.0"
+  peerDependencies:
+    "@remix-run/react": ">=2"
+    "@tanstack/react-router": ^1
+    next: ">=14.2.0"
+    react: ">=18.2.0 || ^19.0.0-0"
+    react-router: ^6 || ^7
+    react-router-dom: ^6 || ^7
+  peerDependenciesMeta:
+    "@remix-run/react":
+      optional: true
+    "@tanstack/react-router":
+      optional: true
+    next:
+      optional: true
+    react-router:
+      optional: true
+    react-router-dom:
+      optional: true
+  checksum: 10c0/08f130a9a4d4287d5a7151edc534229a7909de69d54d33ec1e2178759c4e8cec8d5c3d673f3b0a66186297bffd41eb1f88a411b2b69792b0ee2e5b90323e81f7
   languageName: node
   linkType: hard
 
@@ -12543,6 +12677,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 10c0/f887488c6e6075cdad4962979da1714b217bcb1ee009a9e57ce9a844bcfc4c3a99e93983dfc2e5af9e0913824d24e730090ff255e902c516dcb58d2d3837e01c
+  languageName: node
+  linkType: hard
+
+"use-debounce@npm:^10.0.4":
+  version: 10.0.6
+  resolution: "use-debounce@npm:10.0.6"
+  peerDependencies:
+    react: "*"
+  checksum: 10c0/f0745de48fc344e6f90ea24384f3c79bf0733d06649827241135847abd67ee8db32f523d490c3276bce9f5a6867194ab1c0187bf6b84cabe1dd679037f4a527e
   languageName: node
   linkType: hard
 
