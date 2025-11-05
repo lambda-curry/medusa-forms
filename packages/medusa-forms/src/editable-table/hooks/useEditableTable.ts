@@ -1,4 +1,4 @@
-import type { Row } from '@tanstack/react-table';
+import type { Row, RowSelectionState } from '@tanstack/react-table';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -66,6 +66,14 @@ export function useEditableTable<T extends Record<string, unknown>>(config: Edit
     () => ({
       data,
       columns,
+      // Use row ID for stable row selection (assumes data has 'id' field)
+      getRowId: (row: T, index: number) => {
+        // Try common ID field names
+        if ('id' in row && typeof row.id === 'string') return row.id;
+        if ('id' in row && typeof row.id === 'number') return String(row.id);
+        // Fallback to index if no ID field found (not ideal but required for TanStack Table)
+        return String(index);
+      },
       // Core features
       getCoreRowModel: getCoreRowModel(),
 
@@ -93,6 +101,9 @@ export function useEditableTable<T extends Record<string, unknown>>(config: Edit
         columnFilters: tableState.columnFilters,
         sorting: tableState.sorting,
         pagination: tableState.pagination,
+        ...(config.enableRowSelection && config.rowSelection !== undefined
+          ? { rowSelection: config.rowSelection }
+          : {}),
       },
 
       // State update handlers
@@ -100,6 +111,21 @@ export function useEditableTable<T extends Record<string, unknown>>(config: Edit
       onColumnFiltersChange: updateTableState.setColumnFilters,
       onSortingChange: updateTableState.setSorting,
       onPaginationChange: updateTableState.setPagination,
+      ...(config.enableRowSelection && config.onRowSelectionChange
+        ? {
+            onRowSelectionChange: (
+              updaterOrValue: RowSelectionState | ((old: RowSelectionState) => RowSelectionState),
+            ) => {
+              if (typeof updaterOrValue === 'function') {
+                const currentSelection = config.rowSelection || {};
+                const newSelection = updaterOrValue(currentSelection);
+                config.onRowSelectionChange?.(newSelection);
+              } else {
+                config.onRowSelectionChange?.(updaterOrValue);
+              }
+            },
+          }
+        : {}),
 
       // Manual pagination for server-side pagination (if needed)
       manualPagination: false,
@@ -117,6 +143,9 @@ export function useEditableTable<T extends Record<string, unknown>>(config: Edit
       updateTableState,
       globalFilterFn,
       customColumnFilterFn,
+      config.enableRowSelection,
+      config.rowSelection,
+      config.onRowSelectionChange,
     ],
   );
 

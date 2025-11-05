@@ -161,8 +161,8 @@ function _createActionsColumn<T extends Record<string, unknown>>(
               </DropdownMenu.Item>
             )}
             {onDelete && (
-              <DropdownMenu.Item className="gap-x-2">
-                <Trash className="text-ui-fg-subtle" onClick={() => onDelete(item)} />
+              <DropdownMenu.Item onClick={() => onDelete(item)} className="gap-x-2">
+                <Trash className="text-ui-fg-subtle" />
                 Delete
               </DropdownMenu.Item>
             )}
