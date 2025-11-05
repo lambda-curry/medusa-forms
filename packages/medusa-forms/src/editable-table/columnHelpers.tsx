@@ -4,6 +4,21 @@ import type { EditableColumnType } from './types/columns';
 
 export const canSortColumn = (type: EditableColumnType) => ['text', 'number'].includes(type);
 
+// Get default column sizing based on field type
+export function getDefaultColumnSizing(type: EditableColumnType): number {
+  switch (type) {
+    case 'number':
+      return 120;
+    case 'badge':
+      return 100;
+    case 'select':
+    case 'autocomplete':
+      return 180;
+    default:
+      return 200;
+  }
+}
+
 // Get filter function based on field type
 export function getFilterFunction(type: string) {
   switch (type) {

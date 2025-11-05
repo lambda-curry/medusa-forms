@@ -2,7 +2,7 @@ import { EllipsisHorizontal, Eye, Trash } from '@medusajs/icons';
 import { Checkbox, DropdownMenu } from '@medusajs/ui';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useMemo } from 'react';
-import { canSortColumn, getSortingFunction } from '../columnHelpers';
+import { canSortColumn, getDefaultColumnSizing, getSortingFunction } from '../columnHelpers';
 import { CellContent } from '../components/cells/cells';
 import type {
   EditableTableCellMeta,
@@ -50,8 +50,9 @@ function _createEditableTableColumn<TRowData extends Record<string, unknown>>(
   columnDef: EditableTableColumnDefinition<TRowData>,
   getCellActions: GetCellActionsFn,
 ): ColumnDef<TRowData> {
-  const minSize = columnDef.minWidth;
-  const maxSize = Math.max(columnDef.maxWidth || 0, minSize || 0);
+  const defaultSize = getDefaultColumnSizing(columnDef.type);
+  const minSize = columnDef.minWidth || defaultSize;
+  const maxSize = Math.max(columnDef.maxWidth || 0, Math.max(minSize, 380));
   const fieldKey = columnDef.getFieldKey?.(columnDef.key) || columnDef.key;
   const columnMeta: EditableTableCellMeta = {
     name: columnDef.name,

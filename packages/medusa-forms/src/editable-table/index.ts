@@ -44,6 +44,7 @@ export type {
 // Utilities
 export {
   canSortColumn,
+  getDefaultColumnSizing,
   getFilterFunction,
   getSortingFunction,
   getColumnHeaderClassName,
