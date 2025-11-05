@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `EditableTable` is a powerful, feature-rich React component built for the Medusa2 admin interface that provides inline editing capabilities for tabular data. It combines the flexibility of TanStack Table with real-time validation, auto-save functionality, column sorting, filtering, and URL state persistence to create an efficient data management experience.
+The `EditableTable` is a powerful, feature-rich React component built for the Medusa2 admin interface that provides inline editing capabilities for tabular data. It combines the flexibility of TanStack Table with real-time validation, auto-save functionality, and URL state persistence to create an efficient data management experience.
 
 ## Installation & Peer Dependencies
 
@@ -41,165 +41,53 @@ For virtual scrolling support with large datasets:
 yarn add @tanstack/react-virtual@^3.10.0
 ```
 
-## Storybook Setup Requirements
+## NuqsAdapter Setup
 
-> **Prerequisites:** Make sure you have installed all [peer dependencies](#installation--peer-dependencies) before setting up Storybook stories.
+The `EditableTable` component uses `nuqs` for URL state persistence (search, filters, pagination, sorting). Since Medusa Admin uses React Router v6, you need to wrap your page content with the `NuqsAdapter` from `nuqs/adapters/react-router/v6`.
 
-The `EditableTable` component requires several context providers to function correctly in Storybook (or any standalone environment). Below are the required providers and the errors you'll encounter if they're missing:
+> **Note:** The adapter required depends on your React framework. For Medusa Admin (React Router v6), use `nuqs/adapters/react-router/v6`. For other frameworks, see the [official nuqs adapters documentation](https://nuqs.dev/docs/adapters).
 
-### Required Providers
+### Medusa Admin Setup
 
-#### 1. NuqsAdapter (URL State Management)
-**Package:** `nuqs` (peer dependency)  
+In Medusa Admin, add the `NuqsAdapter` at the page level when creating custom pages:
+
+```tsx
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v6';
+import { EditableTable } from '@lambdacurry/medusa-forms/editable-table';
+import { defineRouteConfig } from '@medusajs/admin-sdk';
+import { Buildings } from '@medusajs/icons';
+
+const MyCustomPage = () => {
+  return (
+    <NuqsAdapter>
+      <EditableTable
+        data={data}
+        editableColumns={columns}
+        getValidateHandler={getValidateHandler}
+        getSaveHandler={getSaveHandler}
+        getOptionsHandler={getOptionsHandler}
+        // ... other props
+      />
+    </NuqsAdapter>
+  );
+};
+
+export const config = defineRouteConfig({
+  label: 'My Custom Page',
+  icon: Buildings,
+});
+
+export default MyCustomPage;
+```
+
+**Why needed:** The `NuqsAdapter` provides the routing context that `nuqs` requires to synchronize table state (search, filters, pagination, sorting) with the URL query parameters.
+
 **Error if missing:**
 ```
 [nuqs] nuqs requires an adapter to work with your framework.
 ```
 
-**Why needed:** The EditableTable uses `nuqs` for URL state persistence (search, filters, pagination, sorting). In Storybook, which doesn't have a framework router, you need the React adapter.
-
-**Setup:**
-```typescript
-import { NuqsAdapter } from 'nuqs/adapters/react';
-```
-
-#### 2. QueryClientProvider (React Query)
-**Package:** `@tanstack/react-query` (peer dependency)  
-**Error if missing:**
-```
-No QueryClient set, use QueryClientProvider to set one
-```
-
-**Why needed:** The EditableTable's autocomplete cells and async operations depend on React Query for data fetching and caching.
-
-**Setup:**
-```typescript
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
-```
-
-#### 3. TooltipProvider (Medusa UI)
-**Package:** `@medusajs/ui` (peer dependency)  
-**Error if missing:**
-```
-`Tooltip` must be used within `TooltipProvider`
-```
-
-**Why needed:** The EditableTable uses tooltips for column headers and cell status indicators. Medusa UI's Tooltip component requires a provider.
-
-**Setup:**
-```typescript
-import { TooltipProvider } from '@medusajs/ui';
-```
-
-#### 4. Toaster (Medusa UI - Optional but Recommended)
-**Package:** `@medusajs/ui` (peer dependency)  
-**Why needed:** For displaying toast notifications for validation errors, save confirmations, etc.
-
-**Setup:**
-```typescript
-import { Toaster } from '@medusajs/ui';
-```
-
-### Complete Storybook Decorator Example
-
-Here's the complete decorator setup for EditableTable stories with all required imports:
-
-```typescript
-// Component imports
-import { EditableTable } from '@lambdacurry/medusa-forms/editable-table';
-import type { EditableTableColumnDefinition } from '@lambdacurry/medusa-forms/editable-table';
-
-// Provider imports
-import { Toaster, TooltipProvider } from '@medusajs/ui';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { NuqsAdapter } from 'nuqs/adapters/react';
-
-// Storybook imports
-import type { Meta } from '@storybook/react-vite';
-
-// React imports
-import { useState } from 'react';
-
-const meta = {
-  title: 'Your Stories/Editable Table',
-  component: EditableTable,
-  decorators: [
-    (Story) => {
-      // Initialize React Query client
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: false,
-            staleTime: 1000 * 60 * 5, // 5 minutes
-          },
-        },
-      });
-
-      return (
-        <NuqsAdapter>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <div className="p-6 bg-ui-bg-subtle min-h-screen">
-                <Story />
-              </div>
-              <Toaster />
-            </TooltipProvider>
-          </QueryClientProvider>
-        </NuqsAdapter>
-      );
-    },
-  ],
-} satisfies Meta<typeof EditableTable>;
-
-export default meta;
-```
-
-**Key Imports Explained:**
-- `EditableTable` - Main component from medusa-forms package
-- `Toaster`, `TooltipProvider` - From `@medusajs/ui` peer dependency
-- `QueryClient`, `QueryClientProvider` - From `@tanstack/react-query` peer dependency
-- `NuqsAdapter` - From `nuqs` peer dependency (React adapter for standalone usage)
-
-### Provider Hierarchy
-
-The providers must be nested in this specific order (outermost to innermost):
-
-```
-NuqsAdapter                    ← URL state management
-  └─ QueryClientProvider       ← React Query context
-      └─ TooltipProvider       ← Medusa UI tooltips
-          └─ Your Content
-          └─ Toaster           ← Toast notifications (sibling to content)
-```
-
-### Troubleshooting
-
-| Error Message | Missing Provider | Package | Solution |
-|---------------|------------------|---------|----------|
-| `nuqs requires an adapter` | `NuqsAdapter` | `nuqs` | Wrap in `<NuqsAdapter>` from `nuqs/adapters/react` |
-| `No QueryClient set` | `QueryClientProvider` | `@tanstack/react-query` | Wrap in `<QueryClientProvider client={queryClient}>` |
-| `Tooltip must be used within TooltipProvider` | `TooltipProvider` | `@medusajs/ui` | Wrap in `<TooltipProvider>` from `@medusajs/ui` |
-| Toast notifications not appearing | `Toaster` | `@medusajs/ui` | Add `<Toaster />` component from `@medusajs/ui` |
-| Icons not rendering | `@medusajs/icons` | `@medusajs/icons` | Ensure peer dependency is installed |
-| Table functionality broken | `@tanstack/react-table` | `@tanstack/react-table` | Ensure peer dependency is installed |
-
-### Production Usage
-
-In a production Medusa Admin application, these providers are typically already set up at the app level:
-- Next.js or React Router provides the routing context for `nuqs`
-- React Query is configured globally
-- Medusa UI providers are included in the app shell
-
-You only need to configure these providers explicitly in isolated environments like Storybook or standalone demos.
+For other frameworks or standalone usage, refer to the [official nuqs adapters documentation](https://nuqs.dev/docs/adapters).
 
 ## Key Features
 
@@ -207,7 +95,7 @@ You only need to configure these providers explicitly in isolated environments l
 - **Real-time Validation**: Immediate feedback with Zod schema validation
 - **Auto-save**: Debounced saving with visual status indicators
 - **URL State Persistence**: Table state (search, sort, pagination) persists in URL
-- **Column Management**: Sorting and filtering
+- **Column Management**: Sorting, filtering, pinning, and resizing
 - **Loading States**: Built-in skeleton loading with customizable row/column counts
 - **Tooltip Support**: Column headers can display helpful tooltips
 - **Pagination**: Configurable pagination with customizable page sizes
@@ -347,8 +235,7 @@ export const MyEditableTable = () => {
       showControls={true}
       showPagination={true}
       enableGlobalFilter={true}
-      enableSorting={true}        // Enable sorting (click headers)
-      enableColumnFilters={true}  // Enable column filters
+      enableSorting={true}
       enablePagination={true}
       tableId="my-table" // Optional: for URL state persistence
     />
@@ -366,7 +253,6 @@ export const MyEditableTable = () => {
   type: 'text',
   placeholder: 'Enter title',
   required: true,
-  enableSorting: true,  // Click header to sort
 }
 ```
 
@@ -382,7 +268,6 @@ export const MyEditableTable = () => {
     max: 999999,
     step: 1,
   },
-  enableSorting: true,  // Click header to sort
 }
 ```
 
@@ -1183,8 +1068,10 @@ interface EditableTableProps<T extends Record<string, unknown>> {
   // Table Features
   enableGlobalFilter?: boolean;        // Enable global search
   enableColumnFilters?: boolean;       // Enable column-specific filters
-  enableSorting?: boolean;             // Enable column sorting (click headers to sort)
+  enableSorting?: boolean;             // Enable column sorting
   enablePagination?: boolean;          // Enable pagination
+  enableColumnPinning?: boolean;       // Enable column pinning
+  enableColumnVisibility?: boolean;    // Enable column show/hide
   enableRowSelection?: boolean;        // Enable row selection
   
   // Event Handlers
@@ -1218,8 +1105,10 @@ interface EditableTableColumnDefinition<T> {
   maxWidth?: number;                  // Maximum column width
   
   // Features
-  enableSorting?: boolean;            // Enable sorting for this column (click header to sort)
+  enableSorting?: boolean;            // Enable sorting for this column
   enableFiltering?: boolean;          // Enable filtering for this column
+  enableHiding?: boolean;             // Allow hiding this column
+  isPinnable?: boolean;               // Allow pinning this column
   
   // Dependencies and validation
   dependsOn?: string[];               // Fields this column depends on
@@ -1541,23 +1430,16 @@ describe('Cell Save', () => {
    // Basic column filtering is available
    <EditableTable
      enableColumnFilters={true}
-     // Future: Advanced filter types (date ranges, number ranges, etc.)
+     // Future: Advanced filter types
+     filterTypes={{
+       status: 'select',
+       date: 'dateRange',
+       price: 'numberRange',
+     }}
    />
    ```
 
-4. **Column Sorting** (✅ Implemented)
-   ```tsx
-   // Click column headers to sort (ascending → descending → unsorted)
-   <EditableTable
-     enableSorting={true}
-     editableColumns={[
-       { name: 'Name', key: 'name', type: 'text', enableSorting: true },
-       { name: 'Price', key: 'price', type: 'number', enableSorting: true },
-     ]}
-   />
-   ```
-
-5. **Column Tooltips** (✅ Implemented)
+4. **Column Tooltips** (✅ Implemented)
    ```tsx
    // Tooltip support for column headers is now available
    <EditableTable
@@ -1566,8 +1448,8 @@ describe('Cell Save', () => {
      }}
    />
    ```
-   
-6. **Pagination** (✅ Implemented)
+
+5. **Pagination** (✅ Implemented)
    ```tsx
    // Full pagination system with customizable page sizes
    <EditableTable
