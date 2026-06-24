@@ -1,38 +1,45 @@
 import type * as React from 'react';
-import {
-  Controller,
-  type ControllerProps,
-  type FieldValues,
-  type Path,
-  type RegisterOptions,
-  useFormContext,
-} from 'react-hook-form';
+import { Controller, type ControllerProps, type FieldValues, type Path, useFormContext } from 'react-hook-form';
 import { CurrencyInput, type CurrencyInputProps } from '../ui/CurrencyInput';
+import { type ControlledRules, serializeDisplayValue, splitTransformRules, transformValue } from './valueTransforms';
 
 export type ControlledCurrencyInputProps<T extends FieldValues> = CurrencyInputProps &
-  Omit<ControllerProps, 'render' | 'control'> & {
+  Omit<ControllerProps<T>, 'render' | 'control' | 'rules'> & {
     name: Path<T>;
+    rules?: ControlledRules<T>;
   };
 
 export const ControlledCurrencyInput = <T extends FieldValues>({
   name,
   rules,
+  onChange,
   ...props
 }: ControlledCurrencyInputProps<T>) => {
-  const { control } = useFormContext<T>();
+  const {
+    control,
+    formState: { errors },
+  } = useFormContext<T>();
+  const { controllerRules, hasTransform } = splitTransformRules(rules);
 
   return (
     <Controller<T>
       control={control}
       name={name}
-      rules={rules as Omit<RegisterOptions<T, Path<T>>, 'disabled' | 'valueAsNumber' | 'valueAsDate' | 'setValueAs'>}
+      rules={controllerRules}
       render={({ field }) => {
         return (
           <CurrencyInput
             {...field}
             {...props}
+            formErrors={errors}
+            {...(hasTransform ? { value: serializeDisplayValue(field.value, rules) } : {})}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              field.onChange(e.target.value.replace(/[^0-9.-]+/g, ''));
+              if (onChange) {
+                onChange(e);
+              }
+
+              const value = e.target.value.replace(/[^0-9.-]+/g, '');
+              field.onChange(hasTransform ? transformValue(value, rules) : value);
             }}
           />
         );
