@@ -1,6 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ControlledCurrencyInput } from '@lambdacurry/medusa-forms/controlled/ControlledCurrencyInput';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, waitFor, within } from '@storybook/test';
+import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -21,7 +23,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 interface CurrencyFormData {
-  price: string;
+  price: string | number;
 }
 
 // Base wrapper component for stories
@@ -59,6 +61,84 @@ const CurrencyInputWithHookForm = ({
       </div>
     </FormProvider>
   );
+};
+
+const CurrencyInputWithStringState = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData> name="price" label="String price" symbol="$" code="usd" />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+const CurrencyInputWithRequiredError = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '' },
+    mode: 'onChange',
+  });
+
+  useEffect(() => {
+    form.trigger('price').then(() => undefined);
+  }, [form]);
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px]">
+        <ControlledCurrencyInput
+          name="price"
+          label="Required price"
+          symbol="$"
+          code="usd"
+          rules={{ required: 'Price is required' }}
+        />
+      </div>
+    </FormProvider>
+  );
+};
+
+const CurrencyInputWithValueAsNumber = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="Numeric price"
+          symbol="$"
+          code="usd"
+          rules={{ valueAsNumber: true }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+const getStateOutput = (canvas: ReturnType<typeof within>) => canvas.getByText((content) => content.includes('"type"'));
+const getInputByName = (canvasElement: HTMLElement, name: string) => {
+  const input = canvasElement.querySelector<HTMLInputElement>(`input[name="${name}"]`);
+
+  if (!input) {
+    throw new Error(`Input with name "${name}" was not found.`);
+  }
+
+  return input;
 };
 
 // 1. Different Currency Symbols
@@ -192,6 +272,74 @@ export const RequiredFieldValidation: Story = {
       required
     />
   ),
+};
+
+export const RequiredRuleError: Story = {
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithRequiredError />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+
+    await waitFor(() => {
+      expect(canvas.getByText('Price is required')).toBeInTheDocument();
+    });
+  },
+};
+
+export const DefaultStringValue: Story = {
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithStringState />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.type(input, '1234');
+
+    await waitFor(() => {
+      expect(input.value).toContain('1,234');
+      expect(state).toHaveTextContent('"value": "1234"');
+      expect(state).toHaveTextContent('"type": "string"');
+    });
+  },
+};
+
+export const ValueAsNumber: Story = {
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.type(input, '1234');
+
+    await waitFor(() => {
+      expect(input.value).toContain('1,234');
+      expect(state).toHaveTextContent('"value": 1234');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.clear(input);
+
+    await waitFor(() => {
+      expect(input.value).toBe('');
+      expect(state).toHaveTextContent('"value": null');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
 };
 
 const customValidationSchema = z.object({

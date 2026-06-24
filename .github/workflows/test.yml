@@ -37,6 +37,12 @@ jobs:
       - name: Build Storybook
         run: yarn build-storybook
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Storybook tests
+        run: yarn workspace @lambdacurry/medusa-forms-docs test
+
       - name: Lint and format check
         run: yarn format-and-lint
 
@@ -47,4 +53,3 @@ jobs:
           name: test-failure
           path: apps/docs/storybook-static
           retention-days: 2
-
