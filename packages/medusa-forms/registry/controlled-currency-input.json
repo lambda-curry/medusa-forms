@@ -1,0 +1,17 @@
+{
+  "name": "controlled-currency-input",
+  "type": "registry:ui",
+  "description": "CurrencyInput component with react-hook-form integration",
+  "dependencies": [
+    "react-hook-form"
+  ],
+  "registryDependencies": [
+    "currency-input"
+  ],
+  "files": [
+    {
+      "name": "controlled-currency-input.tsx",
+      "path": "src/controlled/ControlledCurrencyInput.tsx"
+    }
+  ]
+}

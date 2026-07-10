@@ -1,0 +1,15 @@
+{
+  "name": "field-error",
+  "type": "registry:ui",
+  "description": "Error display component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "name": "error.tsx",
+      "path": "src/ui/Error.tsx"
+    }
+  ]
+}

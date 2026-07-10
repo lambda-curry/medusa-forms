@@ -1,0 +1,17 @@
+{
+  "name": "input",
+  "type": "registry:ui",
+  "description": "Base input component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper"
+  ],
+  "files": [
+    {
+      "name": "input.tsx",
+      "path": "src/ui/Input.tsx"
+    }
+  ]
+}

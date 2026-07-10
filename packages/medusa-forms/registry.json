@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "name": "medusa-forms",
+  "description": "Controlled form fields for Medusa Admin and Medusa UI",
+  "url": "https://raw.githubusercontent.com/lambda-curry/medusa-forms/main/packages/medusa-forms",
+  "style": "default",
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/styles/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "src/components",
+    "utils": "src/lib/utils"
+  }
+}
