@@ -3,6 +3,10 @@ import { Controller, type ControllerProps, type FieldValues, type Path, useFormC
 import { CurrencyInput, type CurrencyInputProps } from '../ui/CurrencyInput';
 import { type ControlledRules, serializeDisplayValue, splitTransformRules, transformValue } from './valueTransforms';
 
+/** Match a valid number: optional leading minus, digits, optional single decimal point + digits */
+const NUMERIC_VALUE_REGEX = /^-?\d*\.?\d*/;
+const NON_NUMERIC_REGEX = /[^0-9.-]/g;
+
 export type ControlledCurrencyInputProps<T extends FieldValues> = CurrencyInputProps &
   Omit<ControllerProps<T>, 'render' | 'control' | 'rules'> & {
     name: Path<T>;
@@ -38,10 +42,8 @@ export const ControlledCurrencyInput = <T extends FieldValues>({
                 onChange(e);
               }
 
-              // Strip non-numeric chars, then clamp to valid number format:
-              // optional leading minus, digits, optional single decimal point + digits
-              const cleaned = e.target.value.replace(/[^0-9.-]/g, '');
-              const value = cleaned.match(/^-?\d*\.?\d*/)?.[0] ?? '';
+              const cleaned = e.target.value.replace(NON_NUMERIC_REGEX, '');
+              const value = cleaned.match(NUMERIC_VALUE_REGEX)?.[0] ?? '';
               field.onChange(hasTransform ? transformValue(value, rules) : value);
             }}
           />
