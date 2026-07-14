@@ -38,7 +38,10 @@ export const ControlledCurrencyInput = <T extends FieldValues>({
                 onChange(e);
               }
 
-              const value = e.target.value.replace(/[^0-9.-]+/g, '');
+              // Strip non-numeric chars, then clamp to valid number format:
+              // optional leading minus, digits, optional single decimal point + digits
+              const cleaned = e.target.value.replace(/[^0-9.-]/g, '');
+              const value = cleaned.match(/^-?\d*\.?\d*/)?.[0] ?? '';
               field.onChange(hasTransform ? transformValue(value, rules) : value);
             }}
           />
