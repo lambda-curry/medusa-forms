@@ -7,5 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@lambdacurry/forms-docs"]
+  "ignore": ["@lambdacurry/medusa-forms-docs"]
 }
