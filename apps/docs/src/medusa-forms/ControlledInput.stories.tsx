@@ -1,7 +1,7 @@
 import { ControlledInput } from '@lambdacurry/medusa-forms/controlled/ControlledInput';
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { expect, userEvent, waitFor, within } from '@storybook/test';
 import { FormProvider, useForm } from 'react-hook-form';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 
 const meta = {
   title: 'Medusa Forms/Controlled Input',
