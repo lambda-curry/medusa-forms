@@ -15,18 +15,7 @@ type CurrencyFieldShellProps = Omit<CurrencyInputProps, keyof BasicFieldProps> &
  * silently corrupts high-precision decimals (IEEE-754).
  */
 const CurrencyFieldShell = forwardRef<HTMLInputElement, CurrencyFieldShellProps>(
-  (
-    {
-      symbol,
-      code,
-      size = 'base',
-      disabled,
-      className,
-      onInvalid,
-      ...props
-    },
-    ref,
-  ) => {
+  ({ symbol, code, size = 'base', disabled, className, onInvalid, ...props }, ref) => {
     return (
       <div
         className={clx(
@@ -69,13 +58,10 @@ const CurrencyFieldShell = forwardRef<HTMLInputElement, CurrencyFieldShellProps>
           className="h-full min-w-0 flex-1 appearance-none bg-transparent text-right outline-none disabled:cursor-not-allowed"
         />
         <span
-          className={clx(
-            'flex w-fit min-w-[32px] items-center justify-center border-l px-2 text-right',
-            {
-              'py-[9px]': size === 'base',
-              'py-[5px]': size === 'small',
-            },
-          )}
+          className={clx('flex w-fit min-w-[32px] items-center justify-center border-l px-2 text-right', {
+            'py-[9px]': size === 'base',
+            'py-[5px]': size === 'small',
+          })}
           role="presentation"
         >
           <Text

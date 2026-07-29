@@ -34,7 +34,10 @@ export const normalizeCurrencyInputValue = (raw: string): string => {
   const value =
     decimalIndex === -1
       ? unsigned
-      : `${unsigned.slice(0, decimalIndex + 1)}${unsigned.slice(decimalIndex + 1).split(DECIMAL_POINT).join('')}`;
+      : `${unsigned.slice(0, decimalIndex + 1)}${unsigned
+          .slice(decimalIndex + 1)
+          .split(DECIMAL_POINT)
+          .join('')}`;
   return isNegative ? `-${value}` : value;
 };
 
