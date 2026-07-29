@@ -25,22 +25,12 @@ export type TextAreaProps = Omit<
 > &
   React.RefAttributes<HTMLTextAreaElement>;
 
-type CurrencyInputValueChangeValues = {
-  float: number | null;
-  formatted: string;
-  value: string;
-};
-
 export type MedusaCurrencyInputProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, 'defaultValue' | 'step'> & {
   symbol: string;
   code: string;
   size?: 'small' | 'base';
   defaultValue?: string | number;
   step?: number;
-  /** Passed through to react-currency-input-field */
-  disableGroupSeparators?: boolean;
-  /** Passed through to react-currency-input-field (raw unformatted value) */
-  onValueChange?: (value: string | undefined, name?: string, values?: CurrencyInputValueChangeValues) => void;
 };
 
 export type MedusaInputProps = React.InputHTMLAttributes<HTMLInputElement> & {

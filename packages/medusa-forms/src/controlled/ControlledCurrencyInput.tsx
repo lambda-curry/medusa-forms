@@ -34,7 +34,7 @@ export const normalizeCurrencyInputValue = (raw: string): string => {
   const value =
     decimalIndex === -1
       ? unsigned
-      : `${unsigned.slice(0, decimalIndex + 1)}${unsigned.slice(decimalIndex + 1).replaceAll(DECIMAL_POINT, '')}`;
+      : `${unsigned.slice(0, decimalIndex + 1)}${unsigned.slice(decimalIndex + 1).split(DECIMAL_POINT).join('')}`;
   return isNegative ? `-${value}` : value;
 };
 
@@ -44,12 +44,28 @@ const toDisplayValue = <T extends FieldValues>(
   value: unknown,
   rules: ControlledRules<T> | undefined,
   hasTransform: boolean,
-) => (hasTransform ? serializeDisplayValue(value, rules) : String(value ?? ''));
+): string => {
+  if (!hasTransform) {
+    return String(value ?? '');
+  }
+  const serialized = serializeDisplayValue(value, rules);
+  return Array.isArray(serialized) ? serialized.join('') : serialized;
+};
+
+type CurrencyInputValueChangeValues = {
+  float: number | null;
+  formatted: string;
+  value: string;
+};
 
 export type ControlledCurrencyInputProps<T extends FieldValues> = CurrencyInputProps &
   Omit<ControllerProps<T>, 'render' | 'control' | 'rules'> & {
     name: Path<T>;
     rules?: ControlledRules<T>;
+    /** When true, skip thousand separators while blurred. */
+    disableGroupSeparators?: boolean;
+    /** Accepted for API compatibility; ignored (prefer onChange / Controller). */
+    onValueChange?: (value: string | undefined, name?: string, values?: CurrencyInputValueChangeValues) => void;
   };
 
 type CurrencyFieldRenderProps<T extends FieldValues> = {
@@ -74,12 +90,11 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const selectionRef = useRef({ start: 0, end: 0 });
 
-  const { onFocus, onBlur, onKeyDown, onBeforeInput, disableGroupSeparators, onValueChange: _, ...restProps } =
-    inputProps;
+  const { onFocus, onBlur, onKeyDown, onBeforeInput, disableGroupSeparators, ...restProps } = inputProps;
   // While focused, draft preserves intermediate text (e.g. "19.") without group separators.
   // When blurred, derive from field.value and optionally group with string-only formatting.
   const rawDisplay = isFocused ? draft : toDisplayValue(field.value, rules, hasTransform);
-  const displayValue = formatCurrencyGroups(rawDisplay, !isFocused && !disableGroupSeparators);
+  const displayValue = formatCurrencyGroups(rawDisplay, !(isFocused || disableGroupSeparators));
 
   const rememberSelection = (el: HTMLInputElement) => {
     selectionRef.current = {
@@ -124,11 +139,7 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
       {...restProps}
       ref={(node) => {
         inputRef.current = node;
-        if (typeof field.ref === 'function') {
-          field.ref(node);
-        } else if (field.ref) {
-          field.ref.current = node;
-        }
+        field.ref(node);
       }}
       formErrors={formErrors}
       value={displayValue}
@@ -154,9 +165,8 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
         }
         onKeyDown?.(event);
       }}
-      onBeforeInput={(event: React.FormEvent<HTMLInputElement>) => {
-        const data = (event.nativeEvent as InputEvent).data;
-        if (typeof data === 'string' && data.includes(DECIMAL_POINT)) {
+      onBeforeInput={(event: React.InputEvent<HTMLInputElement>) => {
+        if (typeof event.data === 'string' && event.data.includes(DECIMAL_POINT)) {
           blockExtraDecimal(event);
         }
         onBeforeInput?.(event);
