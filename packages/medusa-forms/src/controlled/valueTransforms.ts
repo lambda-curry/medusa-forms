@@ -1,5 +1,4 @@
 import type { FieldValues, Path, RegisterOptions } from 'react-hook-form';
-import { isNumberConversionLossy } from './currencyPrecision';
 
 export type ControlledRules<T extends FieldValues> = Omit<RegisterOptions<T, Path<T>>, 'disabled'>;
 type ControllerRules<T extends FieldValues> = Omit<ControlledRules<T>, 'valueAsNumber' | 'valueAsDate' | 'setValueAs'>;
@@ -15,18 +14,9 @@ export const splitTransformRules = <T extends FieldValues>(
   };
 };
 
-export { isNumberConversionLossy };
-
 export const transformValue = <T extends FieldValues>(value: string, rules: ControlledRules<T> | undefined) => {
   if (rules?.valueAsNumber) {
-    if (value === '') {
-      return Number.NaN;
-    }
-    // Prefer the exact digit string over a rounded float when precision would be lost
-    if (isNumberConversionLossy(value)) {
-      return value;
-    }
-    return +value;
+    return value === '' ? Number.NaN : +value;
   }
 
   if (rules?.valueAsDate) {
@@ -48,11 +38,7 @@ export const serializeDisplayValue = <T extends FieldValues>(value: unknown, rul
   }
 
   if (rules?.valueAsNumber) {
-    if (typeof value === 'number' && Number.isNaN(value)) {
-      return '';
-    }
-    // Keep full digit strings (high-precision currency kept as string when Number is lossy)
-    return String(value);
+    return typeof value === 'number' && Number.isNaN(value) ? '' : String(value);
   }
 
   if (rules?.valueAsDate) {
