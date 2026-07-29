@@ -1,5 +1,7 @@
 /** Group separator helper that never coerces through Number (IEEE-754 safe). */
 const GROUP_EVERY_THREE_DIGITS = /\B(?=(\d{3})+(?!\d))/g;
+const LEADING_ZEROS = /^0+/;
+const TRAILING_ZEROS = /0+$/;
 
 /**
  * True when `Number(value)` cannot preserve the exact decimal digits (IEEE-754 float64).
@@ -15,14 +17,18 @@ export const isNumberConversionLossy = (value: string): boolean => {
     return true;
   }
 
-  const unsigned = value.startsWith('-') ? value.slice(1) : value;
+  const negative = value.startsWith('-');
+  const unsigned = negative ? value.slice(1) : value;
   const [wholeRaw = '0', fraction = ''] = unsigned.split('.');
   const whole = wholeRaw === '' ? '0' : wholeRaw;
-  const wholeWithoutLeadingZeros = whole.replace(/^0+/, '') || (fraction ? '' : '0');
-  const significant = `${wholeWithoutLeadingZeros}${fraction}`.replace(/^0+/, '') || '0';
-
-  // float64 uniquely represents roughly 15–16 significant decimal digits
-  if (significant.length > 15) {
+  const normalizedWhole = whole.replace(LEADING_ZEROS, '') || '0';
+  const normalizedFraction = fraction.replace(TRAILING_ZEROS, '');
+  const normalized = normalizedFraction
+    ? `${negative ? '-' : ''}${normalizedWhole}.${normalizedFraction}`
+    : `${negative ? '-' : ''}${normalizedWhole}`;
+  // Shortest float64 round-trip (ECMAScript ToString); differs only when digits are lost
+  const roundTrip = Object.is(numeric, -0) ? '-0' : String(numeric);
+  if (normalized !== roundTrip) {
     return true;
   }
 
