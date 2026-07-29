@@ -141,6 +141,8 @@ const getInputByName = (canvasElement: HTMLElement, name: string) => {
   return input;
 };
 
+const TRAILING_DECIMAL_DISPLAY = /19\./;
+
 // 1. Different Currency Symbols
 export const USDCurrency: Story = {
   args: {
@@ -337,6 +339,191 @@ export const ValueAsNumber: Story = {
     await waitFor(() => {
       expect(input.value).toBe('');
       expect(state).toHaveTextContent('"value": null');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+const CurrencyInputWithSetValueAs = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="Nullable numeric price"
+          symbol="$"
+          code="usd"
+          step={0.01}
+          rules={{
+            setValueAs: (value) => {
+              if (value == null || value === '') {
+                return null;
+              }
+              const parsed = typeof value === 'number' ? value : Number(value);
+              return Number.isFinite(parsed) ? parsed : null;
+            },
+          }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * Accept, store, and preserve decimal currency values such as 19.99.
+ * Reported failure (pre-fix): valueAsNumber coerces "19." → 19 and rewrites the input,
+ * so typing "19.99" becomes "1999" (or otherwise loses the decimal).
+ */
+export const DecimalValueSupport: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+/**
+ * Intermediate decimal point must remain while typing (e.g. "19.").
+ * Reported failure (pre-fix): trailing "." is stripped as soon as valueAsNumber runs.
+ */
+export const DecimalTypingIntermediate: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.');
+
+    await waitFor(() => {
+      // Draft display keeps the trailing decimal while focused; form value is coerced to 19
+      expect(input.value).toMatch(TRAILING_DECIMAL_DISPLAY);
+      expect(state).toHaveTextContent('"value": 19');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.type(input, '99');
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+  },
+};
+
+const CurrencyInputWithExistingDecimal = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: 19.99 },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="Existing decimal price"
+          symbol="$"
+          code="usd"
+          step={0.01}
+          rules={{ valueAsNumber: true }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * Editing an existing decimal must not truncate or block valid input.
+ * Reported failure (pre-fix): replacing 19.99 with 20.50 loses the decimal while typing.
+ */
+export const EditPreservesDecimals: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithExistingDecimal />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    await userEvent.click(input);
+    await userEvent.clear(input);
+    await userEvent.type(input, '20.50');
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+/**
+ * Same decimal path consumers use (setValueAs → nullable number), e.g. Sezzle min/max.
+ * Reported failure (pre-fix): setValueAs Number() coercion strips intermediate decimals.
+ */
+export const SetValueAsPreservesDecimals: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithSetValueAs />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '20.50');
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
       expect(state).toHaveTextContent('"type": "number"');
     });
   },
