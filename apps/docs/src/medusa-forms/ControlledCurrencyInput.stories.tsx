@@ -141,7 +141,7 @@ const getInputByName = (canvasElement: HTMLElement, name: string) => {
   return input;
 };
 
-const TRAILING_DECIMAL_DISPLAY = /19\./;
+const TRAILING_DECIMAL_DISPLAY = /\d+\.$/;
 
 // 1. Different Currency Symbols
 export const USDCurrency: Story = {
@@ -403,6 +403,14 @@ export const DecimalValueSupport: Story = {
       expect(state).toHaveTextContent('"value": 19.99');
       expect(state).toHaveTextContent('"type": "number"');
     });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
   },
 };
 
@@ -433,7 +441,24 @@ export const DecimalTypingIntermediate: Story = {
       expect(state).toHaveTextContent('"type": "number"');
     });
 
-    await userEvent.type(input, '99');
+    await userEvent.tab();
+
+    await waitFor(() => {
+      // Blur reconciles draft "19." from the coerced field value
+      expect(input.value).toBe('19');
+      expect(state).toHaveTextContent('"value": 19');
+    });
+
+    await userEvent.click(input);
+    await userEvent.clear(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    await userEvent.tab();
 
     await waitFor(() => {
       expect(input.value).toContain('19.99');
@@ -498,6 +523,14 @@ export const EditPreservesDecimals: Story = {
       expect(state).toHaveTextContent('"value": 20.5');
       expect(state).toHaveTextContent('"type": "number"');
     });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
   },
 };
 
@@ -520,6 +553,14 @@ export const SetValueAsPreservesDecimals: Story = {
 
     await userEvent.click(input);
     await userEvent.type(input, '20.50');
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
 
     await waitFor(() => {
       expect(input.value).toContain('20.5');

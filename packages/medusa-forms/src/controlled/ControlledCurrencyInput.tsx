@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Controller,
   type ControllerProps,
@@ -11,13 +11,16 @@ import {
 import { CurrencyInput, type CurrencyInputProps } from '../ui/CurrencyInput';
 import { type ControlledRules, serializeDisplayValue, splitTransformRules, transformValue } from './valueTransforms';
 
-/** Match a valid number: optional leading minus, digits, optional single decimal point + digits */
-const NUMERIC_VALUE_REGEX = /^-?\d*\.?\d*/;
+/** Strip non-numeric characters; keep a leading minus and at most one decimal point. */
 const NON_NUMERIC_REGEX = /[^0-9.-]/g;
 
 export const normalizeCurrencyInputValue = (raw: string): string => {
   const cleaned = raw.replace(NON_NUMERIC_REGEX, '');
-  return cleaned.match(NUMERIC_VALUE_REGEX)?.[0] ?? '';
+  const isNegative = cleaned.startsWith('-');
+  const unsigned = cleaned.replace(/-/g, '');
+  const [whole, ...rest] = unsigned.split('.');
+  const value = rest.length > 0 ? `${whole}.${rest.join('')}` : whole;
+  return isNegative ? `-${value}` : value;
 };
 
 const toDisplayValue = <T extends FieldValues>(
@@ -52,23 +55,19 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
   const [isFocused, setIsFocused] = useState(false);
   const [draft, setDraft] = useState(() => toDisplayValue(field.value, rules, hasTransform));
 
-  // While focused, draft is the source of truth so intermediate values like "19." survive
-  // valueAsNumber / setValueAs coercion. Sync from the field when blurred (resets/defaults).
-  useEffect(() => {
-    if (!isFocused) {
-      setDraft(toDisplayValue(field.value, rules, hasTransform));
-    }
-  }, [field.value, hasTransform, isFocused, rules]);
-
   const { onFocus, onBlur, ...restProps } = inputProps;
+  // While focused, draft preserves intermediate text (e.g. "19."). When blurred, derive
+  // from field.value so resets/defaults stay in sync without effect-driven mirroring.
+  const displayValue = isFocused ? draft : toDisplayValue(field.value, rules, hasTransform);
 
   return (
     <CurrencyInput
       {...field}
       {...restProps}
       formErrors={formErrors}
-      value={draft}
+      value={displayValue}
       onFocus={(event: React.FocusEvent<HTMLInputElement>) => {
+        setDraft(toDisplayValue(field.value, rules, hasTransform));
         setIsFocused(true);
         onFocus?.(event);
       }}
