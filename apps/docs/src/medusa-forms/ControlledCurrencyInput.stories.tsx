@@ -307,6 +307,15 @@ export const DefaultStringValue: Story = {
     await userEvent.type(input, '1234');
 
     await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1234');
+      expect(state).toHaveTextContent('"value": "1234"');
+      expect(state).toHaveTextContent('"type": "string"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
       expect(input.value).toContain('1,234');
       expect(state).toHaveTextContent('"value": "1234"');
       expect(state).toHaveTextContent('"type": "string"');
@@ -329,11 +338,21 @@ export const ValueAsNumber: Story = {
     await userEvent.type(input, '1234');
 
     await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1234');
+      expect(state).toHaveTextContent('"value": 1234');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
       expect(input.value).toContain('1,234');
       expect(state).toHaveTextContent('"value": 1234');
       expect(state).toHaveTextContent('"type": "number"');
     });
 
+    await userEvent.click(input);
     await userEvent.clear(input);
 
     await waitFor(() => {
