@@ -11,13 +11,15 @@ import {
 import { CurrencyInput, type CurrencyInputProps } from '../ui/CurrencyInput';
 import { type ControlledRules, serializeDisplayValue, splitTransformRules, transformValue } from './valueTransforms';
 
-/** Match a valid number: optional leading minus, digits, optional single decimal point + digits */
-const NUMERIC_VALUE_REGEX = /^-?\d*\.?\d*/;
 const NON_NUMERIC_REGEX = /[^0-9.-]/g;
 
 export const normalizeCurrencyInputValue = (raw: string): string => {
   const cleaned = raw.replace(NON_NUMERIC_REGEX, '');
-  return cleaned.match(NUMERIC_VALUE_REGEX)?.[0] ?? '';
+  const isNegative = cleaned.startsWith('-');
+  const unsigned = cleaned.replace(/-/g, '');
+  const [whole, ...rest] = unsigned.split('.');
+  const value = rest.length > 0 ? `${whole}.${rest.join('')}` : whole;
+  return isNegative ? `-${value}` : value;
 };
 
 const toDisplayValue = <T extends FieldValues>(
