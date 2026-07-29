@@ -570,6 +570,163 @@ export const SetValueAsPreservesDecimals: Story = {
   },
 };
 
+/**
+ * Caret must stay put while editing mid-value (no group-separator reformatting on each keystroke).
+ */
+export const CursorStableWhileEditing: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '1999');
+
+    await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1999');
+      expect(state).toHaveTextContent('"value": 1999');
+    });
+
+    input.setSelectionRange(2, 2);
+    await userEvent.type(input, '0', {
+      initialSelectionStart: 2,
+      initialSelectionEnd: 2,
+    });
+
+    await waitFor(() => {
+      expect(input.value).toBe('19099');
+      expect(input.selectionStart).toBe(3);
+      expect(input.selectionEnd).toBe(3);
+      expect(state).toHaveTextContent('"value": 19099');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('19,099');
+      expect(state).toHaveTextContent('"value": 19099');
+    });
+  },
+};
+
+const CurrencyInputWithLargeDecimal = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '125560066337.69' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[480px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="High precision price"
+          symbol="$"
+          code="usd"
+          rules={{ valueAsNumber: true }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * High-magnitude decimals must not be rounded by IEEE-754 (e.g. …66337.69 → …66338.69).
+ */
+export const HighPrecisionDigitsPreserved: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithLargeDecimal />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe('125560066337.69');
+    });
+
+    await userEvent.click(input);
+    // Insert digits just after "1255600" so the value grows past float64 precision
+    input.setSelectionRange(7, 7);
+    await userEvent.type(input, '11111', {
+      initialSelectionStart: 7,
+      initialSelectionEnd: 7,
+    });
+
+    const expected = '12556001111166337.69';
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe(expected);
+      // Stored as string once Number() would round (not 12556001111166338)
+      expect(state).toHaveTextContent(`"value": "${expected}"`);
+      expect(state).toHaveTextContent('"type": "string"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe(expected);
+      expect(state).toHaveTextContent(`"value": "${expected}"`);
+    });
+  },
+};
+
+/**
+ * A second decimal point must be ignored — it must not remove/move the existing "." .
+ */
+export const RejectsSecondDecimalPoint: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toBe('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    // Insert another "." after the leading "1" — must not become "1.999" or jump caret
+    input.setSelectionRange(1, 1);
+    await userEvent.type(input, '.', {
+      initialSelectionStart: 1,
+      initialSelectionEnd: 1,
+    });
+
+    await waitFor(() => {
+      expect(input.value).toBe('19.99');
+      expect(input.selectionStart).toBe(1);
+      expect(input.selectionEnd).toBe(1);
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+  },
+};
+
 const customValidationSchema = z.object({
   price: z.string().refine((val) => {
     const num = Number.parseFloat(val);

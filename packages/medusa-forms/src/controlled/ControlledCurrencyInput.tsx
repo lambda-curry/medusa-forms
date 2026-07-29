@@ -1,5 +1,5 @@
 import type * as React from 'react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Controller,
   type ControllerProps,
@@ -9,19 +9,36 @@ import {
   useFormContext,
 } from 'react-hook-form';
 import { CurrencyInput, type CurrencyInputProps } from '../ui/CurrencyInput';
+import { formatCurrencyGroups } from './currencyPrecision';
 import { type ControlledRules, serializeDisplayValue, splitTransformRules, transformValue } from './valueTransforms';
 
 /** Strip non-numeric characters; keep a leading minus and at most one decimal point. */
 const NON_NUMERIC_REGEX = /[^0-9.-]/g;
+const DECIMAL_POINT = '.';
 
-export const normalizeCurrencyInputValue = (raw: string): string => {
+const stripToNumeric = (raw: string): { isNegative: boolean; unsigned: string } => {
   const cleaned = raw.replace(NON_NUMERIC_REGEX, '');
   const isNegative = cleaned.startsWith('-');
-  const unsigned = cleaned.replace(/-/g, '');
-  const [whole, ...rest] = unsigned.split('.');
-  const value = rest.length > 0 ? `${whole}.${rest.join('')}` : whole;
+  return { isNegative, unsigned: cleaned.replace(/-/g, '') };
+};
+
+/** True when the input contains more than one decimal point (after stripping junk). */
+export const hasMultipleDecimalPoints = (raw: string): boolean => {
+  const { unsigned } = stripToNumeric(raw);
+  return unsigned.indexOf(DECIMAL_POINT) !== unsigned.lastIndexOf(DECIMAL_POINT);
+};
+
+export const normalizeCurrencyInputValue = (raw: string): string => {
+  const { isNegative, unsigned } = stripToNumeric(raw);
+  const decimalIndex = unsigned.indexOf(DECIMAL_POINT);
+  const value =
+    decimalIndex === -1
+      ? unsigned
+      : `${unsigned.slice(0, decimalIndex + 1)}${unsigned.slice(decimalIndex + 1).replaceAll(DECIMAL_POINT, '')}`;
   return isNegative ? `-${value}` : value;
 };
+
+const isDecimalKey = (key: string) => key === DECIMAL_POINT || key === 'Decimal';
 
 const toDisplayValue = <T extends FieldValues>(
   value: unknown,
@@ -37,7 +54,7 @@ export type ControlledCurrencyInputProps<T extends FieldValues> = CurrencyInputP
 
 type CurrencyFieldRenderProps<T extends FieldValues> = {
   field: ControllerRenderProps<T, Path<T>>;
-  inputProps: Omit<ControlledCurrencyInputProps<T>, 'name' | 'rules' | 'onChange'>;
+  inputProps: Omit<ControlledCurrencyInputProps<T>, 'name' | 'rules' | 'onChange' | 'onValueChange'>;
   rules: ControlledRules<T> | undefined;
   hasTransform: boolean;
   formErrors: ReturnType<typeof useFormContext>['formState']['errors'];
@@ -54,21 +71,71 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
 }: CurrencyFieldRenderProps<T>) => {
   const [isFocused, setIsFocused] = useState(false);
   const [draft, setDraft] = useState(() => toDisplayValue(field.value, rules, hasTransform));
+  const inputRef = useRef<HTMLInputElement | null>(null);
+  const selectionRef = useRef({ start: 0, end: 0 });
 
-  const { onFocus, onBlur, ...restProps } = inputProps;
-  // While focused, draft preserves intermediate text (e.g. "19."). When blurred, derive
-  // from field.value so resets/defaults stay in sync without effect-driven mirroring.
-  const displayValue = isFocused ? draft : toDisplayValue(field.value, rules, hasTransform);
+  const { onFocus, onBlur, onKeyDown, onBeforeInput, disableGroupSeparators, onValueChange: _, ...restProps } =
+    inputProps;
+  // While focused, draft preserves intermediate text (e.g. "19.") without group separators.
+  // When blurred, derive from field.value and optionally group with string-only formatting.
+  const rawDisplay = isFocused ? draft : toDisplayValue(field.value, rules, hasTransform);
+  const displayValue = formatCurrencyGroups(rawDisplay, !isFocused && !disableGroupSeparators);
+
+  const rememberSelection = (el: HTMLInputElement) => {
+    selectionRef.current = {
+      start: el.selectionStart ?? 0,
+      end: el.selectionEnd ?? 0,
+    };
+  };
+
+  const restoreSelection = () => {
+    const el = inputRef.current;
+    if (!el) {
+      return;
+    }
+    const { start, end } = selectionRef.current;
+    requestAnimationFrame(() => {
+      el.setSelectionRange(start, end);
+    });
+  };
+
+  const commitValue = (raw: string) => {
+    // Ignore keystrokes/pastes that would introduce a second decimal point (otherwise the
+    // previous "." is dropped and digits rejoin, which feels like the decimal "moved").
+    if (hasMultipleDecimalPoints(raw)) {
+      restoreSelection();
+      return;
+    }
+
+    const value = normalizeCurrencyInputValue(raw);
+    setDraft(value);
+    field.onChange(hasTransform ? transformValue(value, rules) : value);
+  };
+
+  const blockExtraDecimal = (event: { preventDefault: () => void }) => {
+    if (draft.includes(DECIMAL_POINT)) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <CurrencyInput
       {...field}
       {...restProps}
+      ref={(node) => {
+        inputRef.current = node;
+        if (typeof field.ref === 'function') {
+          field.ref(node);
+        } else if (field.ref) {
+          field.ref.current = node;
+        }
+      }}
       formErrors={formErrors}
       value={displayValue}
       onFocus={(event: React.FocusEvent<HTMLInputElement>) => {
         setDraft(toDisplayValue(field.value, rules, hasTransform));
         setIsFocused(true);
+        rememberSelection(event.currentTarget);
         onFocus?.(event);
       }}
       onBlur={(event: React.FocusEvent<HTMLInputElement>) => {
@@ -76,12 +143,27 @@ const ControlledCurrencyInputField = <T extends FieldValues>({
         field.onBlur();
         onBlur?.(event);
       }}
+      onSelect={(event: React.SyntheticEvent<HTMLInputElement>) => {
+        rememberSelection(event.currentTarget);
+        restProps.onSelect?.(event);
+      }}
+      onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+        rememberSelection(event.currentTarget);
+        if (isDecimalKey(event.key)) {
+          blockExtraDecimal(event);
+        }
+        onKeyDown?.(event);
+      }}
+      onBeforeInput={(event: React.FormEvent<HTMLInputElement>) => {
+        const data = (event.nativeEvent as InputEvent).data;
+        if (typeof data === 'string' && data.includes(DECIMAL_POINT)) {
+          blockExtraDecimal(event);
+        }
+        onBeforeInput?.(event);
+      }}
       onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
         onChange?.(event);
-
-        const value = normalizeCurrencyInputValue(event.target.value);
-        setDraft(value);
-        field.onChange(hasTransform ? transformValue(value, rules) : value);
+        commitValue(event.target.value);
       }}
     />
   );
@@ -91,6 +173,7 @@ export const ControlledCurrencyInput = <T extends FieldValues>({
   name,
   rules,
   onChange,
+  onValueChange: _consumerOnValueChange,
   ...props
 }: ControlledCurrencyInputProps<T>) => {
   const {

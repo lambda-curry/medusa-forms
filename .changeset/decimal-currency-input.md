@@ -2,6 +2,6 @@
 '@lambdacurry/medusa-forms': patch
 ---
 
-Preserve decimal currency input while typing and editing.
+Preserve exact decimal currency digits while typing and editing, without caret jumps or float rounding.
 
-ControlledCurrencyInput kept a draft display value so intermediate decimals like `19.` and values like `19.99` survive `valueAsNumber` / `setValueAs` coercion without truncating or blocking valid input.
+ControlledCurrencyInput uses a precision-safe currency field (no Number()-based formatting), keeps a focused draft for intermediate decimals like `19.`, disables group separators while editing, and stores high-magnitude values as strings when `valueAsNumber` / `setValueAs` would lose IEEE-754 precision.
