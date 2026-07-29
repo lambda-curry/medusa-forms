@@ -34,11 +34,7 @@ export const transformValue = <T extends FieldValues>(value: string, rules: Cont
   }
 
   if (typeof rules?.setValueAs === 'function') {
-    const next = rules.setValueAs(value);
-    if (typeof next === 'number' && Number.isFinite(next) && value !== '' && isNumberConversionLossy(value)) {
-      return value;
-    }
-    return next;
+    return rules.setValueAs(value);
   }
 
   return value;
