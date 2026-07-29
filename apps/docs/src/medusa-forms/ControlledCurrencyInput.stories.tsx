@@ -141,6 +141,8 @@ const getInputByName = (canvasElement: HTMLElement, name: string) => {
   return input;
 };
 
+const TRAILING_DECIMAL_DISPLAY = /\d+\.$/;
+
 // 1. Different Currency Symbols
 export const USDCurrency: Story = {
   args: {
@@ -305,6 +307,15 @@ export const DefaultStringValue: Story = {
     await userEvent.type(input, '1234');
 
     await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1234');
+      expect(state).toHaveTextContent('"value": "1234"');
+      expect(state).toHaveTextContent('"type": "string"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
       expect(input.value).toContain('1,234');
       expect(state).toHaveTextContent('"value": "1234"');
       expect(state).toHaveTextContent('"type": "string"');
@@ -327,17 +338,410 @@ export const ValueAsNumber: Story = {
     await userEvent.type(input, '1234');
 
     await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1234');
+      expect(state).toHaveTextContent('"value": 1234');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
       expect(input.value).toContain('1,234');
       expect(state).toHaveTextContent('"value": 1234');
       expect(state).toHaveTextContent('"type": "number"');
     });
 
+    await userEvent.click(input);
     await userEvent.clear(input);
 
     await waitFor(() => {
       expect(input.value).toBe('');
       expect(state).toHaveTextContent('"value": null');
       expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+const CurrencyInputWithSetValueAs = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="Nullable numeric price"
+          symbol="$"
+          code="usd"
+          step={0.01}
+          rules={{
+            setValueAs: (value) => {
+              if (value == null || value === '') {
+                return null;
+              }
+              const parsed = typeof value === 'number' ? value : Number(value);
+              return Number.isFinite(parsed) ? parsed : null;
+            },
+          }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * Accept, store, and preserve decimal currency values such as 19.99.
+ * Reported failure (pre-fix): valueAsNumber coerces "19." → 19 and rewrites the input,
+ * so typing "19.99" becomes "1999" (or otherwise loses the decimal).
+ */
+export const DecimalValueSupport: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+/**
+ * Intermediate decimal point must remain while typing (e.g. "19.").
+ * Reported failure (pre-fix): trailing "." is stripped as soon as valueAsNumber runs.
+ */
+export const DecimalTypingIntermediate: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.');
+
+    await waitFor(() => {
+      // Draft display keeps the trailing decimal while focused; form value is coerced to 19
+      expect(input.value).toMatch(TRAILING_DECIMAL_DISPLAY);
+      expect(state).toHaveTextContent('"value": 19');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      // Blur reconciles draft "19." from the coerced field value
+      expect(input.value).toBe('19');
+      expect(state).toHaveTextContent('"value": 19');
+    });
+
+    await userEvent.click(input);
+    await userEvent.clear(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+  },
+};
+
+const CurrencyInputWithExistingDecimal = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: 19.99 },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[400px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="Existing decimal price"
+          symbol="$"
+          code="usd"
+          step={0.01}
+          rules={{ valueAsNumber: true }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * Editing an existing decimal must not truncate or block valid input.
+ * Reported failure (pre-fix): replacing 19.99 with 20.50 loses the decimal while typing.
+ */
+export const EditPreservesDecimals: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithExistingDecimal />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await waitFor(() => {
+      expect(input.value).toContain('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    await userEvent.click(input);
+    await userEvent.clear(input);
+    await userEvent.type(input, '20.50');
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+/**
+ * Same decimal path consumers use (setValueAs → nullable number), e.g. Sezzle min/max.
+ * Reported failure (pre-fix): setValueAs Number() coercion strips intermediate decimals.
+ */
+export const SetValueAsPreservesDecimals: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithSetValueAs />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '20.50');
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('20.5');
+      expect(state).toHaveTextContent('"value": 20.5');
+      expect(state).toHaveTextContent('"type": "number"');
+    });
+  },
+};
+
+/**
+ * Caret must stay put while editing mid-value (no group-separator reformatting on each keystroke).
+ */
+export const CursorStableWhileEditing: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '1999');
+
+    await waitFor(() => {
+      // While focused, group separators stay off so the caret is not shoved by commas
+      expect(input.value).toBe('1999');
+      expect(state).toHaveTextContent('"value": 1999');
+    });
+
+    input.setSelectionRange(2, 2);
+    await userEvent.type(input, '0', {
+      initialSelectionStart: 2,
+      initialSelectionEnd: 2,
+    });
+
+    await waitFor(() => {
+      expect(input.value).toBe('19099');
+      expect(input.selectionStart).toBe(3);
+      expect(input.selectionEnd).toBe(3);
+      expect(state).toHaveTextContent('"value": 19099');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value).toContain('19,099');
+      expect(state).toHaveTextContent('"value": 19099');
+    });
+  },
+};
+
+const CurrencyInputWithLargeDecimal = () => {
+  const form = useForm<CurrencyFormData>({
+    defaultValues: { price: '125560066337.69' },
+  });
+  const price = form.watch('price');
+
+  return (
+    <FormProvider {...form}>
+      <div className="w-[480px] space-y-4">
+        <ControlledCurrencyInput<CurrencyFormData>
+          name="price"
+          label="High precision price"
+          symbol="$"
+          code="usd"
+          rules={{ valueAsNumber: true }}
+        />
+        <pre className="rounded bg-gray-100 p-2 text-xs">
+          {JSON.stringify({ value: price, type: typeof price }, null, 2)}
+        </pre>
+      </div>
+    </FormProvider>
+  );
+};
+
+/**
+ * High-magnitude decimals must not be rounded by IEEE-754 (e.g. …66337.69 → …66338.69).
+ */
+export const HighPrecisionDigitsPreserved: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithLargeDecimal />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe('125560066337.69');
+    });
+
+    await userEvent.click(input);
+    // Insert digits just after "1255600" so the value grows past float64 precision
+    input.setSelectionRange(7, 7);
+    await userEvent.type(input, '11111', {
+      initialSelectionStart: 7,
+      initialSelectionEnd: 7,
+    });
+
+    const expected = '12556001111166337.69';
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe(expected);
+      // Stored as string once Number() would round (not 12556001111166338)
+      expect(state).toHaveTextContent(`"value": "${expected}"`);
+      expect(state).toHaveTextContent('"type": "string"');
+    });
+
+    await userEvent.tab();
+
+    await waitFor(() => {
+      expect(input.value.replace(/,/g, '')).toBe(expected);
+      expect(state).toHaveTextContent(`"value": "${expected}"`);
+    });
+  },
+};
+
+/**
+ * A second decimal point must be ignored — it must not remove/move the existing "." .
+ */
+export const RejectsSecondDecimalPoint: Story = {
+  tags: ['decimal-currency', 'test'],
+  args: {
+    name: 'price',
+    symbol: '$',
+    code: 'usd',
+  },
+  render: () => <CurrencyInputWithValueAsNumber />,
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const input = getInputByName(canvasElement, 'price');
+    const state = getStateOutput(canvas);
+
+    await userEvent.click(input);
+    await userEvent.type(input, '19.99');
+
+    await waitFor(() => {
+      expect(input.value).toBe('19.99');
+      expect(state).toHaveTextContent('"value": 19.99');
+    });
+
+    // Insert another "." after the leading "1" — must not become "1.999" or jump caret
+    input.setSelectionRange(1, 1);
+    await userEvent.type(input, '.', {
+      initialSelectionStart: 1,
+      initialSelectionEnd: 1,
+    });
+
+    await waitFor(() => {
+      expect(input.value).toBe('19.99');
+      expect(input.selectionStart).toBe(1);
+      expect(input.selectionEnd).toBe(1);
+      expect(state).toHaveTextContent('"value": 19.99');
     });
   },
 };
