@@ -1,5 +1,6 @@
 import type { Preview } from '@storybook/react-vite';
 import '../src/main.css';
+import theme from './theme';
 
 const preview: Preview = {
   parameters: {
@@ -8,6 +9,9 @@ const preview: Preview = {
         color: /(background|color)$/i,
         date: /Date$/i,
       },
+    },
+    docs: {
+      theme,
     },
     options: {
       storySort: {
@@ -18,3 +22,4 @@ const preview: Preview = {
 };
 
 export default preview;
+
