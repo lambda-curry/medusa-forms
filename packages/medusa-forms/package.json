@@ -42,6 +42,7 @@
   "scripts": {
     "prepublishOnly": "yarn run build",
     "build": "vite build",
+    "build:registry": "node scripts/build-registry.js",
     "lint": "biome check .",
     "lint:fix": "biome check --apply .",
     "type-check": "tsc --noEmit"

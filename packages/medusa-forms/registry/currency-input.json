@@ -1,0 +1,17 @@
+{
+  "name": "currency-input",
+  "type": "registry:ui",
+  "description": "Base currency input component",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [
+    "field-wrapper"
+  ],
+  "files": [
+    {
+      "name": "currency-input.tsx",
+      "path": "src/ui/CurrencyInput.tsx"
+    }
+  ]
+}

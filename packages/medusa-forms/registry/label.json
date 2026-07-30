@@ -1,0 +1,15 @@
+{
+  "name": "label",
+  "type": "registry:ui",
+  "description": "Label component with tooltip support",
+  "dependencies": [
+    "@medusajs/ui"
+  ],
+  "registryDependencies": [],
+  "files": [
+    {
+      "name": "label.tsx",
+      "path": "src/ui/Label.tsx"
+    }
+  ]
+}
